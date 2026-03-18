@@ -1,0 +1,32 @@
+#! /usr/bin/env python3
+
+launch_dir = '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet'
+run_dir = '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet'
+top_dir = '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet'
+out_dir = '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build'
+
+
+NS3_ENABLED_MODULES = ['ns3-zigbee', 'ns3-wimax', 'ns3-wifi', 'ns3-virtual-net-device', 'ns3-uan', 'ns3-traffic-control', 'ns3-topology-read', 'ns3-stats', 'ns3-spectrum', 'ns3-sixlowpan', 'ns3-propagation', 'ns3-point-to-point-layout', 'ns3-point-to-point', 'ns3-olsr', 'ns3-nix-vector-routing', 'ns3-network', 'ns3-netanim', 'ns3-mobility', 'ns3-mesh', 'ns3-lte', 'ns3-lr-wpan', 'ns3-internet-apps', 'ns3-internet', 'ns3-flow-monitor', 'ns3-energy', 'ns3-dsr', 'ns3-dsdv', 'ns3-csma-layout', 'ns3-csma', 'ns3-core', 'ns3-config-store', 'ns3-buildings', 'ns3-bridge', 'ns3-applications', 'ns3-aodv', 'ns3-antenna', ]
+NS3_ENABLED_CONTRIBUTED_MODULES = ['ns3-wban', 'ns3-sip', 'ns3-oran', 'ns3-nr', 'ns3-netsimulyzer', 'ns3-lorawan', 'ns3-aqm-eval-suite', ]
+NS3_MODULE_PATH = ['/Users/dipit099/.antigravity/antigravity/bin', '/opt/homebrew/opt/openjdk/bin', '/Library/TeX/texbin', '/Library/TeX/texbin', '/opt/homebrew/bin', '/opt/homebrew/sbin', '/opt/homebrew/sbin', '/opt/homebrew/bin', '/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin', '/opt/homebrew/bin', '/opt/homebrew/bin', '/opt/homebrew/sbin', '/Users/dipit099/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand', '/Users/dipit099/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli', '/usr/local/bin', '/Applications/Visual Studio Code.app/Contents/Resources/app/bin', '/opt/local/bin', '/opt/local/sbin', '/usr/local/bin', '/System/Cryptexes/App/usr/bin', '/usr/bin', '/bin', '/usr/sbin', '/sbin', '/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin', '/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin', '/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin', '/Library/TeX/texbin', '/Applications/Wireshark.app/Contents/MacOS', '/usr/local/share/dotnet', '~/.dotnet/tools', '/opt/homebrew/bin', '/Users/dipit099/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand', '/Users/dipit099/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli', '/Users/dipit099/.antigravity/antigravity/bin', '/opt/homebrew/opt/openjdk/bin', '/opt/homebrew/sbin', '/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin', '/Applications/Visual Studio Code.app/Contents/Resources/app/bin', '/opt/local/bin', '/opt/local/sbin', '/Users/dipit099/.local/bin', '/Users/dipit099/.vscode/extensions/ms-python.debugpy-2025.18.0-darwin-arm64/bundled/scripts/noConfigScripts', '/Users/dipit099/.local/bin', '/Applications/Visual Studio Code.app/Contents/Resources/app/bin', '/Users/dipit099/.local/bin', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/lib']
+ENABLE_EXAMPLES = False
+ENABLE_TESTS = False
+ENABLE_OPENFLOW = False
+NSCLICK = False
+ENABLE_BRITE = False
+ENABLE_SUDO = False
+ENABLE_PYTHON_BINDINGS = False
+FETCH_NETANIM_VISUALIZER = False
+EXAMPLE_DIRECTORIES = []
+APPNAME = 'ns'
+BUILD_PROFILE = 'default'
+VERSION = '3.45' 
+BUILD_VERSION_STRING = '' 
+PYTHON = ['/opt/homebrew/bin/python3']
+VALGRIND_FOUND = False 
+
+
+ns3_runnable_programs = ['/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/utils/perf/ns3.45-perf-io-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/utils/ns3.45-print-introspected-doxygen-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/utils/ns3.45-bench-packets-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/utils/ns3.45-bench-scheduler-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/scratch/subdir/ns3.45-scratch-subdir-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/scratch/nested-subdir/ns3.45-scratch-nested-subdir-executable-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/scratch/ns3.45-aodv-simulator-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/build/contrib/nr/ns3.45-nr-print-introspected-doxygen-default', '/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet/cmake-cache/ns3.45-stdlib_pch_exec-default', ]
+
+ns3_runnable_scripts = []
+
