@@ -428,6 +428,7 @@ RoutingProtocol::computeRrepScore(const RrepHeader& rrep) const
     double congestionScore = gamma / (static_cast<double>(rrep.GetCongestionLevel()) + 1.0);
     return hopScore + qualityScore + congestionScore;
 }
+
 void
 RoutingProtocol::CongestionCounterDecayTimerExpire()
 {
@@ -517,7 +518,8 @@ RoutingProtocol::Start()
 
     // CC-AODV: Initialize congestion counter decay timer (decrements every 1 second)
     // CHANGE ::
-    m_congestionCounterDecayTimer.SetFunction(&RoutingProtocol::CongestionCounterDecayTimerExpire, this);
+    m_congestionCounterDecayTimer.SetFunction(&RoutingProtocol::CongestionCounterDecayTimerExpire,
+                                              this);
     m_congestionCounterDecayTimer.Schedule(Seconds(1));
 }
 
@@ -1674,7 +1676,7 @@ RoutingProtocol::SendReply(const RreqHeader& rreqHeader, const RoutingTableEntry
                           /*origin=*/toOrigin.GetDestination(),
                           /*lifetime=*/m_myRouteTimeout);
 
-        // CHANGE
+    // CHANGE
 
     if (m_enableCcAodv || m_enableEccAodv)
     {
@@ -1698,11 +1700,11 @@ RoutingProtocol::SendReply(const RreqHeader& rreqHeader, const RoutingTableEntry
         }
         rrepHeader.SetCongestionLevel(clLevel);
 
-        double qOccupancy = (m_maxQueueLen > 0)
-                                ? static_cast<double>(m_queue.GetSize()) /
-                                      static_cast<double>(m_maxQueueLen)
-                                : 0.0;
-        uint8_t hopQuality = static_cast<uint8_t>(std::max(0.0, std::min(15.0, (1.0 - qOccupancy) * 15.0)));
+        double qOccupancy = (m_maxQueueLen > 0) ? static_cast<double>(m_queue.GetSize()) /
+                                                      static_cast<double>(m_maxQueueLen)
+                                                : 0.0;
+        uint8_t hopQuality =
+            static_cast<uint8_t>(std::max(0.0, std::min(15.0, (1.0 - qOccupancy) * 15.0)));
         rrepHeader.SetHopQuality(hopQuality);
     }
 
@@ -1754,11 +1756,11 @@ RoutingProtocol::SendReplyByIntermediateNode(RoutingTableEntry& toDst,
         }
         rrepHeader.SetCongestionLevel(clLevel);
 
-        double qOccupancy = (m_maxQueueLen > 0)
-                                ? static_cast<double>(m_queue.GetSize()) /
-                                      static_cast<double>(m_maxQueueLen)
-                                : 0.0;
-        uint8_t hopQuality = static_cast<uint8_t>(std::max(0.0, std::min(15.0, (1.0 - qOccupancy) * 15.0)));
+        double qOccupancy = (m_maxQueueLen > 0) ? static_cast<double>(m_queue.GetSize()) /
+                                                      static_cast<double>(m_maxQueueLen)
+                                                : 0.0;
+        uint8_t hopQuality =
+            static_cast<uint8_t>(std::max(0.0, std::min(15.0, (1.0 - qOccupancy) * 15.0)));
         rrepHeader.SetHopQuality(hopQuality);
     }
     /* If the node we received a RREQ for is a neighbor we are
@@ -1863,12 +1865,13 @@ RoutingProtocol::RecvReply(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address send
         if (rrepHeader.GetCongestionFlag() == 1)
         {
             m_congestionCounter++;
-            NS_LOG_DEBUG("ECC-AODV: Received RREP, incremented congestion counter: " << m_congestionCounter);
+            NS_LOG_DEBUG(
+                "ECC-AODV: Received RREP, incremented congestion counter: " << m_congestionCounter);
         }
 
-        m_avgNeighborCounter = static_cast<uint32_t>(
-            0.8 * static_cast<double>(m_avgNeighborCounter) +
-            0.2 * static_cast<double>(m_congestionCounter));
+        m_avgNeighborCounter =
+            static_cast<uint32_t>(0.8 * static_cast<double>(m_avgNeighborCounter) +
+                                  0.2 * static_cast<double>(m_congestionCounter));
         NS_LOG_DEBUG("Updated average neighbor congestion counter: " << m_avgNeighborCounter);
     }
 
@@ -1922,7 +1925,7 @@ RoutingProtocol::RecvReply(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address send
             if (shouldUpdate)
             {
                 NS_LOG_DEBUG("ECC-AODV MMPS: Updating route to " << dst
-                                                                  << " based on better score");
+                                                                 << " based on better score");
             }
         }
         else

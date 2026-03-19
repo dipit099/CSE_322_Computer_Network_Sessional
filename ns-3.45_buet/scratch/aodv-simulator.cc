@@ -181,9 +181,9 @@ Ipv4DropLogger(Ptr<OutputStreamWrapper> stream,
                uint32_t interface)
 {
     g_ipv4DropCount++;
-    *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << "," << context << ","
-                         << header.GetSource() << "," << header.GetDestination() << ","
-                         << packet->GetSize() << "," << static_cast<uint32_t>(reason) << ","
+    *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << ","
+                         << context << "," << header.GetSource() << "," << header.GetDestination()
+                         << "," << packet->GetSize() << "," << static_cast<uint32_t>(reason) << ","
                          << interface << "\n";
 }
 
@@ -287,8 +287,8 @@ RreqLogger(Ptr<OutputStreamWrapper> stream,
     }
 
     g_rreqCount++;
-    *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << "," << nodeId
-                         << "," << rreq.GetOrigin() << "," << rreq.GetDst() << ","
+    *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << ","
+                         << nodeId << "," << rreq.GetOrigin() << "," << rreq.GetDst() << ","
                          << static_cast<uint32_t>(rreq.GetHopCount()) << "," << interface << "\n";
 }
 
@@ -327,8 +327,8 @@ RrepLogger(Ptr<OutputStreamWrapper> stream,
     }
 
     g_rrepCount++;
-    *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << "," << nodeId
-                         << "," << rrep.GetOrigin() << "," << rrep.GetDst() << ","
+    *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << ","
+                         << nodeId << "," << rrep.GetOrigin() << "," << rrep.GetDst() << ","
                          << static_cast<uint32_t>(rrep.GetHopCount()) << "," << interface << "\n";
 }
 
@@ -441,15 +441,15 @@ PollRoutingTables(vector<Ptr<Node>> nodes,
             auto it = previous.find(dst);
             if (it == previous.end())
             {
-                *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << ","
-                                     << nodeId << ",added," << dst << "," << cur.nextHop << ","
-                                     << cur.hops << "\n";
+                *stream->GetStream()
+                    << fixed << setprecision(6) << Simulator::Now().GetSeconds() << "," << nodeId
+                    << ",added," << dst << "," << cur.nextHop << "," << cur.hops << "\n";
             }
             else if (it->second.nextHop != cur.nextHop || it->second.hops != cur.hops)
             {
-                *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << ","
-                                     << nodeId << ",updated," << dst << "," << cur.nextHop << ","
-                                     << cur.hops << "\n";
+                *stream->GetStream()
+                    << fixed << setprecision(6) << Simulator::Now().GetSeconds() << "," << nodeId
+                    << ",updated," << dst << "," << cur.nextHop << "," << cur.hops << "\n";
             }
         }
 
@@ -457,9 +457,9 @@ PollRoutingTables(vector<Ptr<Node>> nodes,
         {
             if (current.find(dst) == current.end())
             {
-                *stream->GetStream() << fixed << setprecision(6) << Simulator::Now().GetSeconds() << ","
-                                     << nodeId << ",removed," << dst << "," << prev.nextHop << ","
-                                     << prev.hops << "\n";
+                *stream->GetStream()
+                    << fixed << setprecision(6) << Simulator::Now().GetSeconds() << "," << nodeId
+                    << ",removed," << dst << "," << prev.nextHop << "," << prev.hops << "\n";
             }
         }
 
@@ -489,10 +489,14 @@ ParseArgs(int argc, char* argv[])
     cmd.AddValue("mode", "Protocol mode: aodv | cc-aodv | ecc-aodv", opt.mode);
     cmd.AddValue("trace", "Enable tracing", opt.trace);
     cmd.AddValue("pcapNodes", "Number of nodes to capture PCAP on", opt.pcapNodes);
-    cmd.AddValue("asciiNodes", "ASCII PHY trace node list: all or comma-separated ids", opt.asciiNodes);
+    cmd.AddValue("asciiNodes",
+                 "ASCII PHY trace node list: all or comma-separated ids",
+                 opt.asciiNodes);
     cmd.AddValue("routeDiscoveryTrace", "Enable route discovery trace", opt.routeDiscoveryTrace);
     cmd.AddValue("routingTableTrace", "Enable routing table change trace", opt.routingTableTrace);
-    cmd.AddValue("routingTableInterval", "Routing table polling interval in seconds", opt.routingTableInterval);
+    cmd.AddValue("routingTableInterval",
+                 "Routing table polling interval in seconds",
+                 opt.routingTableInterval);
     cmd.AddValue("flowMonitorCleanupTime",
                  "Extra seconds to run after traffic stops (for FlowMonitor loss accounting)",
                  opt.flowMonitorCleanupTime);
@@ -585,7 +589,9 @@ EnsureOutputDir(const SimulationOptions& opt)
 }
 
 void
-PrintConfig(const SimulationOptions& opt, const string& protocolLabel, const vector<uint32_t>& asciiNodes)
+PrintConfig(const SimulationOptions& opt,
+            const string& protocolLabel,
+            const vector<uint32_t>& asciiNodes)
 {
     cout << "\n========================================\n";
     cout << "  AODV SIMULATOR\n";
@@ -644,8 +650,7 @@ ConfigureRoutingForMode(AodvHelper& aodv, const SimulationOptions& opt)
         aodv.Set("QACDWeightCounter", DoubleValue(opt.w2));
         aodv.Set("QACDWeightDropRate", DoubleValue(opt.w3));
         cout << "ECC-AODV enabled with BaseThreshold=" << opt.ccBaseThreshold
-             << " and QACD weights (" << opt.w1 << "," << opt.w2 << ","
-             << opt.w3 << ")\n";
+             << " and QACD weights (" << opt.w1 << "," << opt.w2 << "," << opt.w3 << ")\n";
     }
 }
 
@@ -679,8 +684,7 @@ SetupMobility(const SimulationOptions& opt, NodeContainer& nodes)
     double areaSize = gridWidth * spacing;
 
     ostringstream speedStr, boundsX, boundsY;
-    speedStr << "ns3::UniformRandomVariable[Min=" << opt.minSpeed << "|Max=" << opt.maxSpeed
-             << "]";
+    speedStr << "ns3::UniformRandomVariable[Min=" << opt.minSpeed << "|Max=" << opt.maxSpeed << "]";
     boundsX << "ns3::UniformRandomVariable[Min=0.0|Max=" << areaSize << "]";
     boundsY << "ns3::UniformRandomVariable[Min=0.0|Max=" << areaSize << "]";
 
@@ -787,7 +791,8 @@ SetupTracing(const SimulationOptions& opt,
     g_lastRouteTable.clear();
 
     ctx.enabled = true;
-    ctx.traceBase = opt.outputDir + "/" + opt.output + "-" + opt.mode + "-" + to_string(opt.nNodes) + "nodes";
+    ctx.traceBase =
+        opt.outputDir + "/" + opt.output + "-" + opt.mode + "-" + to_string(opt.nNodes) + "nodes";
     ctx.asciiNodeIds = asciiNodeIds;
 
     AsciiTraceHelper ascii;
@@ -968,7 +973,8 @@ PrintTraceSummary(const SimTraceContext& ctx)
 
     cout << "\nTrace summary:\n";
     cout << "  IPv4 drops observed: " << g_ipv4DropCount << "\n";
-    cout << "  Note: IPv4 drops are L3 drop-hook events only; Lost Packets is end-to-end FlowMonitor loss\n";
+    cout << "  Note: IPv4 drops are L3 drop-hook events only; Lost Packets is end-to-end "
+            "FlowMonitor loss\n";
     if (g_ipv4DropCount == 0)
     {
         cout << "  IPv4 drop log contains only header because no drops occurred in this run\n";
@@ -1011,8 +1017,8 @@ WriteCsv(const SimulationOptions& opt, const string& protocolLabel, const Metric
     csv << protocolLabel << "," << opt.mode << "," << opt.nNodes << "," << opt.nSinks << ","
         << opt.seed << "," << (opt.trace ? 1 : 0) << "," << fixed << setprecision(2) << opt.simTime
         << "," << fixed << setprecision(2) << opt.minSpeed << "," << fixed << setprecision(2)
-        << opt.maxSpeed << "," << opt.ccBaseThreshold << "," << m.totalTx << "," << m.totalRx
-        << "," << m.totalLost << "," << fixed << setprecision(2) << m.pdr << "," << fixed
+        << opt.maxSpeed << "," << opt.ccBaseThreshold << "," << m.totalTx << "," << m.totalRx << ","
+        << m.totalLost << "," << fixed << setprecision(2) << m.pdr << "," << fixed
         << setprecision(2) << m.lossRate << "," << fixed << setprecision(4) << m.avgDelayMs << ","
         << fixed << setprecision(2) << m.throughputKbps << "\n";
 
