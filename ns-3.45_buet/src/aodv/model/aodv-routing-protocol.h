@@ -293,8 +293,10 @@ class RoutingProtocol : public Ipv4RoutingProtocol
     double m_w1;
     double m_w2;
     double m_w3;
-    uint32_t m_totalDrops;
-    uint32_t m_totalForwards;
+    uint32_t m_totalDrops;    // RREQ drops by ECC-AODV congestion check
+    uint32_t m_totalForwards; // RREQ forwards by ECC-AODV congestion check
+    uint32_t m_dataDrops;     // Data packets dropped (no route or invalid)
+    uint32_t m_dataForwards;  // Data packets successfully forwarded
     double m_congestionLevel;
     double calculateCongestionLevel() const;
     std::map<Ipv4Address, RrepHeader> m_bestRrep;

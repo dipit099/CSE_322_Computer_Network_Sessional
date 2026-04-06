@@ -1,0 +1,2 @@
+Protocol,Mode,NetworkType,Nodes,Sinks,PPS,PacketSize,Seed,SimTime,MinSpeed,MaxSpeed,CcBaseThreshold,TxPackets,RxPackets,LostPackets,PDR(%),PacketLossRate(%),AvgE2EDelay(ms),Throughput(Kbps),TotalEnergyJ,AvgEnergyPerNodeJ
+Standard AODV,aodv,802.11,40,10,100,512,1,30.00,5.00,5.00,4,35198,10209,24989,29.00,71.00,250.1092,865.79,1358.3999,33.9600

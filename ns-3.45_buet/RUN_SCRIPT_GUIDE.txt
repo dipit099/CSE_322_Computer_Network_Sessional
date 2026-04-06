@@ -1,0 +1,86 @@
+================================================================================
+NS-3 AODV Simulator - Automated Run Script
+================================================================================
+
+WHAT IT DOES:
+  1. Builds the NS-3 project
+  2. Runs 48 simulations (3 node configs × 2 speed configs × 4 weight configs)
+  3. Generates outputs/ with traces (PCAP, ASCII, routing tables, RREQ/RREP)
+  4. Produces results.csv with all metrics
+
+QUICK START:
+  Simply run:
+    ./run.sh
+
+  No command-line arguments needed - all config is in the script itself.
+
+CONFIGURATION:
+  Edit these variables at the top of run.sh:
+
+  # Simulation settings
+  SIM_TIME=30              # Simulation duration (seconds)
+  SEED=1                   # Random seed
+  PROTOCOL_MODE="ecc-aodv" # Protocol: aodv, cc-aodv, ecc-aodv
+  CC_BASE_THRESHOLD=4      # Congestion threshold
+
+  # Test configurations
+  NODE_CONFIGS=("20:10" "30:15" "40:20")        # nodes:sinks
+  SPEED_CONFIGS=("0:5" "4:10")                  # minSpeed:maxSpeed
+  WEIGHT_CONFIGS=("0.3:0.4:0.3" ...)            # w1:w2:w3
+
+  # Tracing options
+  ENABLE_PCAP=true              # PCAP packet capture
+  ENABLE_ASCII=true             # ASCII trace files
+  ENABLE_ROUTE_DISCOVERY=true   # Route discovery events
+  ENABLE_ROUTING_TABLE=true     # Routing table snapshots
+  PCAP_NODES="5"                # Which nodes to capture (5=first 5, "all"=all)
+  ASCII_NODES="all"             # ASCII trace nodes ("all" or comma-separated)
+
+OUTPUT FILES:
+  outputs/results.csv          - Complete results table
+  outputs/*.pcap               - Packet captures (if ENABLE_PCAP=true)
+  outputs/*.tr                 - ASCII traces (if ENABLE_ASCII=true)
+  outputs/*-rreq.csv           - Route requests (if ENABLE_ROUTE_DISCOVERY=true)
+  outputs/*-rrep.csv           - Route replies (if ENABLE_ROUTE_DISCOVERY=true)
+  outputs/*-routing-table.csv  - Routing tables (if ENABLE_ROUTING_TABLE=true)
+  logs/                        - Individual simulation logs
+
+EXPECTED RUNTIME:
+  48 simulations × ~60 seconds each ≈ 50 minutes total
+  (Adjust TIMEOUT in script if simulations take longer)
+
+RESULTS FORMAT (CSV):
+  run_id,nodes,sinks,min_speed,max_speed,w1,w2,w3,pdr,delay_ms,throughput_kbps,loss_rate
+
+EXAMPLE RUNS:
+  # View first 10 results
+  head -10 outputs/results.csv
+
+  # Count output files
+  ls -1 outputs/*.pcap | wc -l
+  ls -1 outputs/*.tr | wc -l
+
+  # Find best PDR
+  tail -n +2 outputs/results.csv | sort -t',' -k9 -rn | head -3
+
+TROUBLESHOOTING:
+  - If timeout occurs: increase TIMEOUT value (default 70 seconds)
+  - If build fails: run "./ns3 build" manually first
+  - If no results: check logs/ directory for error details
+  - If traces not generated: verify ENABLE_* flags are true
+
+EDITING CONFIGURATIONS:
+  You only need to edit the CONFIGURATION section (top 40 lines).
+  Do not modify the MAIN EXECUTION section below unless you know what you're doing.
+
+EXAMPLE: Quick test with 2 configs
+  Change NODE_CONFIGS to:  NODE_CONFIGS=("20:10" "30:15")
+  Change SPEED_CONFIGS to: SPEED_CONFIGS=("0:5")
+  Change WEIGHT_CONFIGS to: WEIGHT_CONFIGS=("0.3:0.4:0.3" "0.5:0.3:0.2")
+  Result: 2 × 1 × 2 = 4 simulations (very fast)
+
+OTHER SCRIPTS:
+  run_all_tests.sh   - Extended version with statistics
+  run_quick_test.sh  - Fast 6-simulation test
+
+================================================================================

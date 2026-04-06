@@ -1,0 +1,160 @@
+W1=0.5
+W2=0.3
+W3=0.2
+------------------------------------------------------------
+ Config: nodes=20  flows=10  speed=25 m/s  pps=500  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=20   f=10   s=25   p=500  ... OK   PDR=14.80% Tput=2765.87Kbps E2E=435.0313ms Loss=85.20% E=689.4218 J
+  802.11     cc-aodv    n=20   f=10   s=25   p=500  ... OK   PDR=13.81% Tput=2630.98Kbps E2E=449.2674ms Loss=86.19% E=690.0525 J
+  802.11     ecc-aodv   n=20   f=10   s=25   p=500  ... OK   PDR=15.03% Tput=2905.69Kbps E2E=439.7601ms Loss=84.97% E=689.7935 J
+  802.15.4   aodv       n=20   f=10   s=25   p=500  ... OK   PDR=2.54%  Tput=369.51Kbps E2E=502.1955ms Loss=97.46% E=708.4378 J
+  802.15.4   cc-aodv    n=20   f=10   s=25   p=500  ... OK   PDR=2.48%  Tput=377.10Kbps E2E=436.9783ms Loss=97.52% E=708.1125 J
+  802.15.4   ecc-aodv   n=20   f=10   s=25   p=500  ... OK   PDR=2.89%  Tput=454.91Kbps E2E=431.3221ms Loss=97.11% E=710.2026 J
+
+------------------------------------------------------------
+ Config: nodes=40  flows=20  speed=20 m/s  pps=400  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=40   f=20   s=20   p=400  ... OK   PDR=8.32%  Tput=2566.37Kbps E2E=479.6471ms Loss=91.68% E=1370.0303 J
+  802.11     cc-aodv    n=40   f=20   s=20   p=400  ... OK   PDR=7.72%  Tput=2186.73Kbps E2E=455.1101ms Loss=92.28% E=1369.6201 J
+  802.11     ecc-aodv   n=40   f=20   s=20   p=400  ... OK   PDR=7.79%  Tput=2203.35Kbps E2E=449.4167ms Loss=92.21% E=1370.8559 J
+  802.15.4   aodv       n=40   f=20   s=20   p=400  ... OK   PDR=2.51%  Tput=471.43Kbps E2E=398.2943ms Loss=97.49% E=1408.2378 J
+  802.15.4   cc-aodv    n=40   f=20   s=20   p=400  ... OK   PDR=3.43%  Tput=776.48Kbps E2E=416.5038ms Loss=96.57% E=1410.7761 J
+  802.15.4   ecc-aodv   n=40   f=20   s=20   p=400  ... OK   PDR=3.74%  Tput=926.10Kbps E2E=429.6489ms Loss=96.26% E=1408.1838 J
+
+------------------------------------------------------------
+ Config: nodes=60  flows=30  speed=15 m/s  pps=300  simtime=25s
+------------------------------------------------------------
+  802.11     aodv       n=60   f=30   s=15   p=300  ... OK   PDR=5.04%  Tput=1360.26Kbps E2E=449.6102ms Loss=94.96% E=1794.8215 J
+  802.11     cc-aodv    n=60   f=30   s=15   p=300  ... OK   PDR=5.25%  Tput=1482.42Kbps E2E=469.1420ms Loss=94.75% E=1788.1718 J
+  802.11     ecc-aodv   n=60   f=30   s=15   p=300  ... OK   PDR=5.24%  Tput=1513.67Kbps E2E=481.7952ms Loss=94.76% E=1786.0404 J
+  802.15.4   aodv       n=60   f=30   s=15   p=300  ... OK   PDR=4.32%  Tput=827.57Kbps E2E=359.9204ms Loss=95.68% E=1847.8019 J
+  802.15.4   cc-aodv    n=60   f=30   s=15   p=300  ... OK   PDR=3.57%  Tput=643.37Kbps E2E=377.7263ms Loss=96.43% E=1844.1783 J
+  802.15.4   ecc-aodv   n=60   f=30   s=15   p=300  ... OK   PDR=3.97%  Tput=915.83Kbps E2E=407.1318ms Loss=96.03% E=1843.6836 J
+
+------------------------------------------------------------
+ Config: nodes=80  flows=40  speed=10 m/s  pps=200  simtime=20s
+------------------------------------------------------------
+  802.11     aodv       n=80   f=40   s=10   p=200  ... OK   PDR=7.36%  Tput=1549.81Kbps E2E=418.1537ms Loss=92.64% E=2047.0196 J
+  802.11     cc-aodv    n=80   f=40   s=10   p=200  ... OK   PDR=6.22%  Tput=1400.07Kbps E2E=420.4461ms Loss=93.78% E=2041.9801 J
+  802.11     ecc-aodv   n=80   f=40   s=10   p=200  ... OK   PDR=6.97%  Tput=1578.64Kbps E2E=358.0945ms Loss=93.03% E=2041.7011 J
+  802.15.4   aodv       n=80   f=40   s=10   p=200  ... OK   PDR=7.38%  Tput=1029.17Kbps E2E=290.3075ms Loss=92.62% E=2093.1170 J
+  802.15.4   cc-aodv    n=80   f=40   s=10   p=200  ... OK   PDR=6.90%  Tput=846.92Kbps E2E=283.5728ms Loss=93.10% E=2088.4569 J
+  802.15.4   ecc-aodv   n=80   f=40   s=10   p=200  ... OK   PDR=6.58%  Tput=791.28Kbps E2E=261.4916ms Loss=93.42% E=2083.3316 J
+
+------------------------------------------------------------
+ Config: nodes=100  flows=50  speed=5 m/s  pps=100  simtime=15s
+------------------------------------------------------------
+  802.11     aodv       n=100  f=50   s=5    p=100  ... OK   PDR=6.85%  Tput=346.84Kbps E2E=382.6241ms Loss=93.15% E=2112.7348 J
+  802.11     cc-aodv    n=100  f=50   s=5    p=100  ... OK   PDR=8.12%  Tput=387.59Kbps E2E=355.3629ms Loss=91.88% E=2118.0953 J
+  802.11     ecc-aodv   n=100  f=50   s=5    p=100  ... OK   PDR=8.04%  Tput=424.59Kbps E2E=374.8493ms Loss=91.96% E=2117.1092 J
+  802.15.4   aodv       n=100  f=50   s=5    p=100  ... OK   PDR=15.99% Tput=633.34Kbps E2E=163.4275ms Loss=84.01% E=2169.3625 J
+  802.15.4   cc-aodv    n=100  f=50   s=5    p=100  ... OK   PDR=10.92% Tput=648.82Kbps E2E=223.9977ms Loss=89.08% E=2148.6834 J
+  802.15.4   ecc-aodv   n=100  f=50   s=5    p=100  ... OK   PDR=15.66% Tput=636.26Kbps E2E=150.3599ms Loss=84.34% E=2159.0350 J
+
+
+##############################
+W1=0.5
+W2=0.3
+W3=0.2
+but for sim=60s
+ Config: nodes=20  flows=10  speed=25 m/s  pps=500  simtime=60s
+------------------------------------------------------------
+  802.11     aodv       n=20   f=10   s=25   p=500  ... OK   PDR=14.64% Tput=2821.19Kbps E2E=439.1417ms Loss=85.36% E=1214.6430 J
+  802.11     cc-aodv    n=20   f=10   s=25   p=500  ... OK   PDR=14.29% Tput=2803.93Kbps E2E=442.9069ms Loss=85.71% E=1215.5566 J
+  802.11     ecc-aodv   n=20   f=10   s=25   p=500  ... OK   PDR=15.44% Tput=3110.46Kbps E2E=451.3780ms Loss=84.56% E=1215.5854 J
+  802.15.4   aodv       n=20   f=10   s=25   p=500  ... OK   PDR=3.48%  Tput=603.29Kbps E2E=431.5600ms Loss=96.52% E=1257.5005 J
+  802.15.4   cc-aodv    n=20   f=10   s=25   p=500  ... OK   PDR=3.73%  Tput=688.64Kbps E2E=441.7952ms Loss=96.27% E=1257.9793 J
+  802.15.4   ecc-aodv   n=20   f=10   s=25   p=500  ... OK   PDR=3.49%  Tput=606.14Kbps E2E=430.6210ms Loss=96.51% E=1255.7314 J
+
+
+------------------------------------------------------------
+ Config: nodes=40  flows=20  speed=20 m/s  pps=400  simtime=60s
+------------------------------------------------------------
+  802.11     aodv       n=40   f=20   s=20   p=400  ... OK   PDR=8.89%  Tput=2809.20Kbps E2E=470.3299ms Loss=91.11% E=2409.9746 J
+  802.11     cc-aodv    n=40   f=20   s=20   p=400  ... OK   PDR=8.48%  Tput=2615.48Kbps E2E=457.4969ms Loss=91.52% E=2408.0315 J
+  802.11     ecc-aodv   n=40   f=20   s=20   p=400  ... OK   PDR=8.21%  Tput=2562.71Kbps E2E=470.9281ms Loss=91.79% E=2408.8354 J
+  802.15.4   aodv       n=40   f=20   s=20   p=400  ... OK   PDR=2.86%  Tput=719.85Kbps E2E=418.6830ms Loss=97.14% E=2490.6990 J
+  802.15.4   cc-aodv    n=40   f=20   s=20   p=400  ... OK   PDR=3.50%  Tput=964.16Kbps E2E=457.3425ms Loss=96.50% E=2497.3655 J
+  802.15.4   ecc-aodv   n=40   f=20   s=20   p=400  ... OK   PDR=4.12%  Tput=1193.22Kbps E2E=454.2890ms Loss=95.88% E=2496.7923 J
+
+------------------------------------------------------------
+ Config: nodes=60  flows=30  speed=15 m/s  pps=300  simtime=65s
+------------------------------------------------------------
+  802.11     aodv       n=60   f=30   s=15   p=300  ... OK   PDR=4.94%  Tput=1522.27Kbps E2E=431.7492ms Loss=95.06% E=3856.2351 J
+  802.11     cc-aodv    n=60   f=30   s=15   p=300  ... OK   PDR=5.33%  Tput=1621.23Kbps E2E=451.4098ms Loss=94.67% E=3855.5965 J
+  802.11     ecc-aodv   n=60   f=30   s=15   p=300  ... OK   PDR=5.63%  Tput=1680.48Kbps E2E=434.7824ms Loss=94.37% E=3860.3328 J
+  802.15.4   aodv       n=60   f=30   s=15   p=300  ... OK   PDR=4.12%  Tput=1169.12Kbps E2E=415.1951ms Loss=95.88% E=4012.0506 J
+  802.15.4   cc-aodv    n=60   f=30   s=15   p=300  ... OK   PDR=3.84%  Tput=1117.38Kbps E2E=426.1988ms Loss=96.16% E=4014.4873 J
+  802.15.4   ecc-aodv   n=60   f=30   s=15   p=300  ... OK   PDR=4.22%  Tput=1270.56Kbps E2E=425.1963ms Loss=95.78% E=4011.6079 J
+
+------------------------------------------------------------
+ Config: nodes=80  flows=40  speed=10 m/s  pps=200  simtime=60s
+------------------------------------------------------------
+  802.11     aodv       n=80   f=40   s=10   p=200  ... OK   PDR=6.73%  Tput=1853.56Kbps E2E=339.3861ms Loss=93.27% E=4803.2386 J
+  802.11     cc-aodv    n=80   f=40   s=10   p=200  ... OK   PDR=5.38%  Tput=1436.20Kbps E2E=323.5414ms Loss=94.62% E=4791.0403 J
+  802.11     ecc-aodv   n=80   f=40   s=10   p=200  ... OK   PDR=6.08%  Tput=1661.15Kbps E2E=326.6215ms Loss=93.92% E=4793.8116 J
+  802.15.4   aodv       n=80   f=40   s=10   p=200  ... OK   PDR=5.43%  Tput=1102.39Kbps E2E=377.0445ms Loss=94.57% E=4958.5724 J
+  802.15.4   cc-aodv    n=80   f=40   s=10   p=200  ... OK   PDR=5.27%  Tput=967.61Kbps E2E=349.8838ms Loss=94.73% E=4954.3087 J
+  802.15.4   ecc-aodv   n=80   f=40   s=10   p=200  ... OK   PDR=5.44%  Tput=1111.49Kbps E2E=387.3170ms Loss=94.56% E=4968.3711 J
+
+------------------------------------------------------------
+ Config: nodes=100  flows=50  speed=5 m/s  pps=100  simtime=60s
+------------------------------------------------------------
+  802.11     aodv       n=100  f=50   s=5    p=100  ... OK   PDR=4.06%  Tput=176.56Kbps E2E=311.1656ms Loss=95.94% E=5974.2081 J
+  802.11     cc-aodv    n=100  f=50   s=5    p=100  ... OK   PDR=3.98%  Tput=172.49Kbps E2E=313.8114ms Loss=96.02% E=5976.9707 J
+  802.11     ecc-aodv   n=100  f=50   s=5    p=100  ... OK   PDR=4.28%  Tput=250.97Kbps E2E=324.5136ms Loss=95.72% E=5975.5921 J
+  802.15.4   aodv       n=100  f=50   s=5    p=100  ... OK   PDR=11.43% Tput=492.57Kbps E2E=159.2938ms Loss=88.57% E=6174.8406 J
+  802.15.4   cc-aodv    n=100  f=50   s=5    p=100  ... OK   PDR=9.25%  Tput=511.11Kbps E2E=199.9843ms Loss=90.75% E=6139.4546 J
+  802.15.4   ecc-aodv   n=100  f=50   s=5    p=100  ... OK   PDR=10.96% Tput=469.76Kbps E2E=151.4547ms Loss=89.04% E=6153.0593 J
+
+
+## same params but for sim=30sec
+------------------------------------------------------------
+ Config: nodes=20  flows=10  speed=25 m/s  pps=500  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=20   f=10   s=25   p=500  ... OK   PDR=14.80% Tput=2765.87Kbps E2E=435.0313ms Loss=85.20% E=689.4218 J
+  802.11     cc-aodv    n=20   f=10   s=25   p=500  ... OK   PDR=13.81% Tput=2630.98Kbps E2E=449.2674ms Loss=86.19% E=690.0525 J
+  802.11     ecc-aodv   n=20   f=10   s=25   p=500  ... OK   PDR=15.03% Tput=2905.69Kbps E2E=439.7601ms Loss=84.97% E=689.7935 J
+  802.15.4   aodv       n=20   f=10   s=25   p=500  ... OK   PDR=2.54%  Tput=369.51Kbps E2E=502.1955ms Loss=97.46% E=708.4378 J
+  802.15.4   cc-aodv    n=20   f=10   s=25   p=500  ... OK   PDR=2.48%  Tput=377.10Kbps E2E=436.9783ms Loss=97.52% E=708.1125 J
+  802.15.4   ecc-aodv   n=20   f=10   s=25   p=500  ... OK   PDR=2.89%  Tput=454.91Kbps E2E=431.3221ms Loss=97.11% E=710.2026 J
+
+------------------------------------------------------------
+ Config: nodes=40  flows=20  speed=20 m/s  pps=400  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=40   f=20   s=20   p=400  ... OK   PDR=8.32%  Tput=2566.37Kbps E2E=479.6471ms Loss=91.68% E=1370.0303 J
+  802.11     cc-aodv    n=40   f=20   s=20   p=400  ... OK   PDR=7.72%  Tput=2186.73Kbps E2E=455.1101ms Loss=92.28% E=1369.6201 J
+  802.11     ecc-aodv   n=40   f=20   s=20   p=400  ... OK   PDR=7.79%  Tput=2203.35Kbps E2E=449.4167ms Loss=92.21% E=1370.8559 J
+  802.15.4   aodv       n=40   f=20   s=20   p=400  ... OK   PDR=2.51%  Tput=471.43Kbps E2E=398.2943ms Loss=97.49% E=1408.2378 J
+  802.15.4   cc-aodv    n=40   f=20   s=20   p=400  ... OK   PDR=3.43%  Tput=776.48Kbps E2E=416.5038ms Loss=96.57% E=1410.7761 J
+  802.15.4   ecc-aodv   n=40   f=20   s=20   p=400  ... OK   PDR=3.74%  Tput=926.10Kbps E2E=429.6489ms Loss=96.26% E=1408.1838 J
+
+------------------------------------------------------------
+ Config: nodes=60  flows=30  speed=15 m/s  pps=300  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=60   f=30   s=15   p=300  ... OK   PDR=4.51%  Tput=1388.93Kbps E2E=465.7574ms Loss=95.49% E=2045.1524 J
+  802.11     cc-aodv    n=60   f=30   s=15   p=300  ... OK   PDR=4.92%  Tput=1464.57Kbps E2E=475.1267ms Loss=95.08% E=2044.4718 J
+  802.11     ecc-aodv   n=60   f=30   s=15   p=300  ... OK   PDR=5.48%  Tput=1646.05Kbps E2E=464.8086ms Loss=94.52% E=2045.9166 J
+  802.15.4   aodv       n=60   f=30   s=15   p=300  ... OK   PDR=4.05%  Tput=926.64Kbps E2E=378.0139ms Loss=95.95% E=2110.9894 J
+  802.15.4   cc-aodv    n=60   f=30   s=15   p=300  ... OK   PDR=3.59%  Tput=751.69Kbps E2E=410.0754ms Loss=96.41% E=2112.7536 J
+  802.15.4   ecc-aodv   n=60   f=30   s=15   p=300  ... OK   PDR=4.06%  Tput=1032.25Kbps E2E=398.0793ms Loss=95.94% E=2110.5093 J
+
+------------------------------------------------------------
+ Config: nodes=80  flows=40  speed=10 m/s  pps=200  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=80   f=40   s=10   p=200  ... OK   PDR=6.74%  Tput=1704.19Kbps E2E=395.1602ms Loss=93.26% E=2729.7642 J
+  802.11     cc-aodv    n=80   f=40   s=10   p=200  ... OK   PDR=6.07%  Tput=1529.75Kbps E2E=344.6411ms Loss=93.93% E=2728.0537 J
+  802.11     ecc-aodv   n=80   f=40   s=10   p=200  ... OK   PDR=6.83%  Tput=1796.12Kbps E2E=337.5804ms Loss=93.17% E=2726.5797 J
+  802.15.4   aodv       n=80   f=40   s=10   p=200  ... OK   PDR=6.68%  Tput=1037.29Kbps E2E=323.3349ms Loss=93.32% E=2818.0491 J
+  802.15.4   cc-aodv    n=80   f=40   s=10   p=200  ... OK   PDR=5.98%  Tput=787.09Kbps E2E=292.3937ms Loss=94.02% E=2807.3033 J
+  802.15.4   ecc-aodv   n=80   f=40   s=10   p=200  ... OK   PDR=6.02%  Tput=784.64Kbps E2E=289.2826ms Loss=93.98% E=2810.8711 J
+
+------------------------------------------------------------
+ Config: nodes=100  flows=50  speed=5 m/s  pps=100  simtime=30s
+------------------------------------------------------------
+  802.11     aodv       n=100  f=50   s=5    p=100  ... OK   PDR=5.79%  Tput=304.05Kbps E2E=323.2558ms Loss=94.21% E=3397.1741 J
+  802.11     cc-aodv    n=100  f=50   s=5    p=100  ... OK   PDR=5.67%  Tput=285.02Kbps E2E=325.4663ms Loss=94.33% E=3397.4640 J
+  802.11     ecc-aodv   n=100  f=50   s=5    p=100  ... OK   PDR=6.67%  Tput=436.14Kbps E2E=323.2194ms Loss=93.33% E=3404.0824 J
+  802.15.4   aodv       n=100  f=50   s=5    p=100  ... OK   PDR=12.92% Tput=534.36Kbps E2E=155.5606ms Loss=87.08% E=3496.2742 J
+  802.15.4   cc-aodv    n=100  f=50   s=5    p=100  ... OK   PDR=9.78%  Tput=568.37Kbps E2E=218.0617ms Loss=90.22% E=3476.4872 J
+  802.15.4   ecc-aodv   n=100  f=50   s=5    p=100  ... OK   PDR=13.38% Tput=575.76Kbps E2E=159.2609ms Loss=86.62% E=3486.5381 J

@@ -1,0 +1,62 @@
+My Std_id = 2105050
+### **Submittables**
+[cite_start]You are required to prepare the following and submit them on Moodle[cite: 1, 4]:
+* [cite_start]A full repository of your code[cite: 2].
+* [cite_start]A comprehensive project report[cite: 3].
+* [cite_start]Both items must be zipped together[cite: 4].
+
+---
+
+### **Experimentation Requirements**
+[cite_start]The document notes an initial calculation of **50% 8 = 2**[cite: 5, 6]. [cite_start]You must simulate the networks using your implemented algorithm according to the assignment and the assignment table[cite: 7]. 
+
+[cite_start]**Network Assignment Table** [cite: 8]
+| Std_id % 8 | Wired | Wireless 802.11 (static) | Wireless 802.11 (mobile) | Wireless 802.15.4 (static) | Wireless 802.15.4 (mobile) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 0 | √ | | | | |
+| 1 | | √ | | √ | |
+| 2 | | | √ | | √ |
+| 3 | | | | √ | |
+| 4 | √ | | | | |
+| 5 | | | | | |
+| 6 | √ | √ | | | |
+| 7 | √ | | | √ | |
+
+---
+
+### **Simulation Parameters**
+[cite_start]During your simulation, you must vary the following parameters[cite: 9, 11]:
+* [cite_start]**Number of nodes:** 20, 40, 60, 80, and 100[cite: 10].
+* [cite_start]**Number of flows:** 10, 20, 30, 40, and 50[cite: 12].
+* [cite_start]**Number of packets per second:** 100, 200, 300, 400, and 500[cite: 13].
+* [cite_start]**Speed of nodes (mobile scenarios only):** 5 m/s, 10 m/s, 15 m/s, 20 m/s, and 25 m/s[cite: 14].
+* [cite_start]**Coverage area (static scenarios only):** Tx_range, 2×Tx_range, 3×Tx_range, 4×Tx_range, and 5×Tx_range (varying one side as a square coverage area)[cite: 15].
+
+---
+
+### **Metrics to Measure and Plot**
+[cite_start]In all simulation cases, you must measure and plot graphs for the following[cite: 16]:
+* [cite_start]**Network throughput**[cite: 17].
+* [cite_start]**End-to-end delay**[cite: 18].
+* [cite_start]**Packet delivery ratio:** Calculated as the total number of packets delivered to the end destination divided by the total number of packets sent[cite: 19].
+* [cite_start]**Packet drop ratio:** Calculated as the total number of packets dropped divided by the total number of packets sent[cite: 20].
+* [cite_start]**Energy consumption:** Required for wireless nodes only[cite: 21].
+
+---
+
+### **Report Requirements**
+[cite_start]Your submitted report must explicitly mention the following[cite: 22]:
+* [cite_start]Network topologies under simulation[cite: 23].
+* [cite_start]Parameters under variation[cite: 24].
+* [cite_start]Modifications made in the simulator[cite: 25].
+* [cite_start]Results accompanied by graphs[cite: 27].
+* [cite_start]Summary findings[cite: 28].
+* [cite_start]Reflection on findings (Discussion section)[cite: 29].
+
+---
+
+
+**Important Note on Performance:**
+[cite_start]It is not mandatory that your modified mechanism results in a performance improvement[cite: 35]. [cite_start]The primary requirement is to clearly demonstrate what changes you made and explain the intuition behind them[cite: 36].
+
+---

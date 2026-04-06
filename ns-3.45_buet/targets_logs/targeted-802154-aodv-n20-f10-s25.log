@@ -1,0 +1,382 @@
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+
+========================================
+  AODV SIMULATOR
+========================================
+Protocol:  Standard AODV
+Mode:      aodv
+Nodes:     20
+SimTime:   30 s
+Speed:     25..25 m/s
+Flows:     10
+Seed:      1
+Trace:     false
+ASCII PHY nodes: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
+Flow trace: all src-dst pairs
+Output:    targets/targeted-802154-aodv-n20-f10-s25-results.csv
+========================================
+
+Network: 802.15.4 approximation (1 Mbps PHY, Friis+Range≤200m)
+Topology: 5x5 grid, 100 m spacing, area 500x500 m
+
+Traffic flows (10):
+  Flow 0: Node 0 -> Node 19
+  Flow 1: Node 1 -> Node 18
+  Flow 2: Node 2 -> Node 17
+  Flow 3: Node 3 -> Node 16
+  Flow 4: Node 4 -> Node 15
+  Flow 5: Node 5 -> Node 14
+  Flow 6: Node 6 -> Node 13
+  Flow 7: Node 7 -> Node 12
+  Flow 8: Node 8 -> Node 11
+  Flow 9: Node 9 -> Node 10
+
+Starting simulation...
+
+========== Per-Flow Statistics ==========
+Flow 1 (10.1.1.1 -> 10.1.1.20)  Tx=2899  Rx=455  Lost=2397  Delay=436 ms
+Flow 2 (10.1.1.2 -> 10.1.1.19)  Tx=2899  Rx=66  Lost=2810  Delay=728 ms
+Flow 3 (10.1.1.3 -> 10.1.1.18)  Tx=2899  Rx=299  Lost=2600  Delay=502 ms
+Flow 4 (10.1.1.4 -> 10.1.1.17)  Tx=2899  Rx=54  Lost=2815  Delay=1246 ms
+Flow 5 (10.1.1.5 -> 10.1.1.16)  Tx=2899  Rx=120  Lost=2715  Delay=625 ms
+Flow 6 (10.1.1.6 -> 10.1.1.15)  Tx=2899  Rx=324  Lost=2575  Delay=514 ms
+Flow 7 (10.1.1.7 -> 10.1.1.14)  Tx=2899  Rx=67  Lost=2832  Delay=618 ms
+Flow 8 (10.1.1.8 -> 10.1.1.13)  Tx=2899  Rx=533  Lost=2366  Delay=462 ms
+Flow 9 (10.1.1.9 -> 10.1.1.12)  Tx=2899  Rx=13  Lost=2886  Delay=995 ms
+Flow 10 (10.1.1.10 -> 10.1.1.11)  Tx=2899  Rx=369  Lost=2530  Delay=448 ms
+Flow 11 (10.1.1.8 -> 10.1.1.9)  Tx=9  Rx=7  Lost=2  Delay=240 ms
+Flow 12 (10.1.1.8 -> 10.1.1.12)  Tx=5  Rx=3  Lost=2  Delay=52 ms
+Flow 13 (10.1.1.14 -> 10.1.1.9)  Tx=7  Rx=0  Lost=7
+Flow 14 (10.1.1.14 -> 10.1.1.12)  Tx=12  Rx=0  Lost=12
+Flow 15 (10.1.1.13 -> 10.1.1.9)  Tx=2  Rx=0  Lost=2
+Flow 16 (10.1.1.13 -> 10.1.1.12)  Tx=5  Rx=0  Lost=4
+Flow 17 (10.1.1.7 -> 10.1.1.9)  Tx=2  Rx=2  Lost=0  Delay=29 ms
+Flow 18 (10.1.1.7 -> 10.1.1.12)  Tx=2  Rx=2  Lost=0  Delay=11 ms
+Flow 19 (10.1.1.8 -> 10.1.1.3)  Tx=49  Rx=14  Lost=35  Delay=391 ms
+Flow 20 (10.1.1.8 -> 10.1.1.18)  Tx=8  Rx=6  Lost=2  Delay=301 ms
+Flow 21 (10.1.1.8 -> 10.1.1.7)  Tx=4  Rx=3  Lost=1  Delay=298 ms
+Flow 22 (10.1.1.8 -> 10.1.1.14)  Tx=6  Rx=4  Lost=2  Delay=400 ms
+Flow 23 (10.1.1.12 -> 10.1.1.7)  Tx=2  Rx=2  Lost=0  Delay=1105 ms
+Flow 24 (10.1.1.12 -> 10.1.1.14)  Tx=4  Rx=0  Lost=4
+Flow 25 (10.1.1.13 -> 10.1.1.7)  Tx=2  Rx=2  Lost=0  Delay=43 ms
+Flow 26 (10.1.1.13 -> 10.1.1.14)  Tx=2  Rx=1  Lost=1  Delay=33 ms
+Flow 27 (10.1.1.9 -> 10.1.1.7)  Tx=24  Rx=2  Lost=22  Delay=28 ms
+Flow 28 (10.1.1.9 -> 10.1.1.14)  Tx=2  Rx=1  Lost=1  Delay=24 ms
+Flow 29 (10.1.1.9 -> 10.1.1.8)  Tx=8  Rx=6  Lost=2  Delay=156 ms
+Flow 30 (10.1.1.3 -> 10.1.1.8)  Tx=8  Rx=6  Lost=2  Delay=158 ms
+Flow 31 (10.1.1.7 -> 10.1.1.13)  Tx=2  Rx=0  Lost=2
+Flow 32 (10.1.1.7 -> 10.1.1.8)  Tx=6  Rx=0  Lost=2
+Flow 33 (10.1.1.13 -> 10.1.1.18)  Tx=6  Rx=6  Lost=0  Delay=241 ms
+Flow 34 (10.1.1.13 -> 10.1.1.11)  Tx=3  Rx=0  Lost=3
+Flow 35 (10.1.1.17 -> 10.1.1.19)  Tx=24  Rx=20  Lost=4  Delay=67 ms
+Flow 36 (10.1.1.17 -> 10.1.1.16)  Tx=22  Rx=22  Lost=0  Delay=107 ms
+Flow 37 (10.1.1.19 -> 10.1.1.15)  Tx=10  Rx=8  Lost=2  Delay=22 ms
+Flow 38 (10.1.1.19 -> 10.1.1.17)  Tx=24  Rx=21  Lost=3  Delay=33 ms
+Flow 39 (10.1.1.18 -> 10.1.1.14)  Tx=8  Rx=8  Lost=0  Delay=105 ms
+Flow 40 (10.1.1.18 -> 10.1.1.17)  Tx=17  Rx=17  Lost=0  Delay=181 ms
+Flow 41 (10.1.1.15 -> 10.1.1.19)  Tx=11  Rx=11  Lost=0  Delay=60 ms
+Flow 42 (10.1.1.15 -> 10.1.1.10)  Tx=9  Rx=8  Lost=1  Delay=195 ms
+Flow 43 (10.1.1.17 -> 10.1.1.12)  Tx=9  Rx=8  Lost=1  Delay=81 ms
+Flow 44 (10.1.1.12 -> 10.1.1.2)  Tx=7  Rx=6  Lost=1  Delay=149 ms
+Flow 45 (10.1.1.13 -> 10.1.1.15)  Tx=4  Rx=3  Lost=1  Delay=143 ms
+Flow 46 (10.1.1.14 -> 10.1.1.18)  Tx=12  Rx=10  Lost=1  Delay=31 ms
+Flow 47 (10.1.1.14 -> 10.1.1.19)  Tx=8  Rx=6  Lost=2  Delay=122 ms
+Flow 48 (10.1.1.20 -> 10.1.1.18)  Tx=6  Rx=0  Lost=6
+Flow 49 (10.1.1.20 -> 10.1.1.19)  Tx=38  Rx=10  Lost=27  Delay=7 ms
+Flow 50 (10.1.1.7 -> 10.1.1.3)  Tx=3  Rx=0  Lost=3
+Flow 51 (10.1.1.7 -> 10.1.1.17)  Tx=4  Rx=0  Lost=2
+Flow 52 (10.1.1.13 -> 10.1.1.3)  Tx=7  Rx=0  Lost=7
+Flow 53 (10.1.1.13 -> 10.1.1.17)  Tx=3  Rx=3  Lost=0  Delay=21 ms
+Flow 54 (10.1.1.11 -> 10.1.1.1)  Tx=22  Rx=18  Lost=4  Delay=94 ms
+Flow 55 (10.1.1.11 -> 10.1.1.17)  Tx=9  Rx=7  Lost=2  Delay=44 ms
+Flow 56 (10.1.1.1 -> 10.1.1.11)  Tx=11  Rx=6  Lost=5  Delay=156 ms
+Flow 57 (10.1.1.1 -> 10.1.1.3)  Tx=5  Rx=0  Lost=5
+Flow 58 (10.1.1.9 -> 10.1.1.3)  Tx=5  Rx=4  Lost=1  Delay=534 ms
+Flow 59 (10.1.1.9 -> 10.1.1.19)  Tx=3  Rx=2  Lost=1  Delay=9 ms
+Flow 60 (10.1.1.13 -> 10.1.1.19)  Tx=3  Rx=1  Lost=2  Delay=41 ms
+Flow 61 (10.1.1.15 -> 10.1.1.5)  Tx=3  Rx=3  Lost=0  Delay=139 ms
+Flow 62 (10.1.1.5 -> 10.1.1.15)  Tx=9  Rx=0  Lost=6
+Flow 63 (10.1.1.5 -> 10.1.1.3)  Tx=4  Rx=4  Lost=0  Delay=445 ms
+Flow 64 (10.1.1.14 -> 10.1.1.4)  Tx=5  Rx=0  Lost=2
+Flow 65 (10.1.1.18 -> 10.1.1.12)  Tx=10  Rx=8  Lost=2  Delay=616 ms
+Flow 66 (10.1.1.15 -> 10.1.1.14)  Tx=7  Rx=5  Lost=2  Delay=447 ms
+Flow 67 (10.1.1.5 -> 10.1.1.10)  Tx=2  Rx=1  Lost=1  Delay=7 ms
+Flow 68 (10.1.1.9 -> 10.1.1.10)  Tx=2  Rx=1  Lost=1  Delay=2138 ms
+Flow 69 (10.1.1.9 -> 10.1.1.15)  Tx=12  Rx=0  Lost=7
+Flow 70 (10.1.1.16 -> 10.1.1.18)  Tx=12  Rx=0  Lost=9
+Flow 71 (10.1.1.10 -> 10.1.1.5)  Tx=30  Rx=17  Lost=13  Delay=433 ms
+Flow 72 (10.1.1.10 -> 10.1.1.14)  Tx=9  Rx=0  Lost=9
+Flow 73 (10.1.1.1 -> 10.1.1.6)  Tx=3  Rx=2  Lost=1  Delay=9 ms
+Flow 74 (10.1.1.7 -> 10.1.1.6)  Tx=4  Rx=4  Lost=0  Delay=478 ms
+Flow 75 (10.1.1.7 -> 10.1.1.11)  Tx=4  Rx=4  Lost=0  Delay=368 ms
+Flow 76 (10.1.1.6 -> 10.1.1.1)  Tx=14  Rx=3  Lost=11  Delay=221 ms
+Flow 77 (10.1.1.6 -> 10.1.1.12)  Tx=10  Rx=2  Lost=8  Delay=4 ms
+Flow 78 (10.1.1.18 -> 10.1.1.13)  Tx=5  Rx=5  Lost=0  Delay=732 ms
+Flow 79 (10.1.1.18 -> 10.1.1.19)  Tx=6  Rx=4  Lost=2  Delay=102 ms
+Flow 80 (10.1.1.17 -> 10.1.1.11)  Tx=12  Rx=10  Lost=2  Delay=20 ms
+Flow 81 (10.1.1.18 -> 10.1.1.16)  Tx=3  Rx=3  Lost=0  Delay=11 ms
+Flow 82 (10.1.1.16 -> 10.1.1.11)  Tx=5  Rx=5  Lost=0  Delay=15 ms
+Flow 83 (10.1.1.14 -> 10.1.1.10)  Tx=10  Rx=7  Lost=3  Delay=116 ms
+Flow 84 (10.1.1.15 -> 10.1.1.20)  Tx=4  Rx=4  Lost=0  Delay=114 ms
+Flow 85 (10.1.1.16 -> 10.1.1.17)  Tx=15  Rx=15  Lost=0  Delay=38 ms
+Flow 86 (10.1.1.6 -> 10.1.1.16)  Tx=10  Rx=0  Lost=6
+Flow 87 (10.1.1.12 -> 10.1.1.6)  Tx=8  Rx=8  Lost=0  Delay=141 ms
+Flow 88 (10.1.1.12 -> 10.1.1.17)  Tx=9  Rx=8  Lost=1  Delay=190 ms
+Flow 89 (10.1.1.10 -> 10.1.1.4)  Tx=7  Rx=5  Lost=2  Delay=256 ms
+Flow 90 (10.1.1.11 -> 10.1.1.6)  Tx=43  Rx=39  Lost=4  Delay=52 ms
+Flow 91 (10.1.1.16 -> 10.1.1.12)  Tx=9  Rx=5  Lost=4  Delay=161 ms
+Flow 92 (10.1.1.19 -> 10.1.1.18)  Tx=4  Rx=4  Lost=0  Delay=79 ms
+Flow 93 (10.1.1.19 -> 10.1.1.20)  Tx=18  Rx=17  Lost=1  Delay=28 ms
+Flow 94 (10.1.1.20 -> 10.1.1.15)  Tx=12  Rx=6  Lost=5  Delay=103 ms
+Flow 95 (10.1.1.9 -> 10.1.1.13)  Tx=3  Rx=0  Lost=3
+Flow 96 (10.1.1.3 -> 10.1.1.13)  Tx=7  Rx=0  Lost=7
+Flow 97 (10.1.1.13 -> 10.1.1.8)  Tx=7  Rx=0  Lost=7
+Flow 98 (10.1.1.15 -> 10.1.1.13)  Tx=3  Rx=3  Lost=0  Delay=399 ms
+Flow 99 (10.1.1.10 -> 10.1.1.20)  Tx=12  Rx=0  Lost=12
+Flow 100 (10.1.1.20 -> 10.1.1.14)  Tx=7  Rx=0  Lost=7
+Flow 101 (10.1.1.4 -> 10.1.1.10)  Tx=3  Rx=0  Lost=3
+Flow 102 (10.1.1.4 -> 10.1.1.8)  Tx=2  Rx=2  Lost=0  Delay=259 ms
+Flow 103 (10.1.1.3 -> 10.1.1.9)  Tx=6  Rx=5  Lost=1  Delay=23 ms
+Flow 104 (10.1.1.3 -> 10.1.1.2)  Tx=5  Rx=0  Lost=5
+Flow 105 (10.1.1.2 -> 10.1.1.9)  Tx=3  Rx=0  Lost=3
+Flow 106 (10.1.1.2 -> 10.1.1.12)  Tx=5  Rx=1  Lost=4  Delay=333 ms
+Flow 107 (10.1.1.11 -> 10.1.1.12)  Tx=5  Rx=0  Lost=5
+Flow 108 (10.1.1.17 -> 10.1.1.14)  Tx=7  Rx=5  Lost=2  Delay=9 ms
+Flow 109 (10.1.1.3 -> 10.1.1.5)  Tx=6  Rx=4  Lost=2  Delay=45 ms
+Flow 110 (10.1.1.3 -> 10.1.1.7)  Tx=1  Rx=1  Lost=0  Delay=3040 ms
+Flow 111 (10.1.1.14 -> 10.1.1.15)  Tx=9  Rx=8  Lost=1  Delay=76 ms
+Flow 112 (10.1.1.2 -> 10.1.1.3)  Tx=1  Rx=0  Lost=1
+Flow 113 (10.1.1.12 -> 10.1.1.3)  Tx=3  Rx=3  Lost=0  Delay=158 ms
+Flow 114 (10.1.1.15 -> 10.1.1.9)  Tx=13  Rx=6  Lost=7  Delay=128 ms
+Flow 115 (10.1.1.6 -> 10.1.1.7)  Tx=2  Rx=0  Lost=2
+Flow 116 (10.1.1.10 -> 10.1.1.15)  Tx=7  Rx=5  Lost=2  Delay=129 ms
+Flow 117 (10.1.1.12 -> 10.1.1.9)  Tx=5  Rx=0  Lost=5
+Flow 118 (10.1.1.8 -> 10.1.1.15)  Tx=4  Rx=2  Lost=1  Delay=1507 ms
+Flow 119 (10.1.1.8 -> 10.1.1.4)  Tx=2  Rx=1  Lost=1  Delay=964 ms
+Flow 120 (10.1.1.19 -> 10.1.1.14)  Tx=8  Rx=7  Lost=1  Delay=104 ms
+Flow 121 (10.1.1.14 -> 10.1.1.17)  Tx=19  Rx=13  Lost=6  Delay=346 ms
+Flow 122 (10.1.1.9 -> 10.1.1.5)  Tx=4  Rx=1  Lost=3  Delay=9 ms
+Flow 123 (10.1.1.11 -> 10.1.1.7)  Tx=3  Rx=0  Lost=3
+Flow 124 (10.1.1.18 -> 10.1.1.8)  Tx=8  Rx=7  Lost=1  Delay=470 ms
+Flow 125 (10.1.1.4 -> 10.1.1.9)  Tx=9  Rx=0  Lost=9
+Flow 126 (10.1.1.14 -> 10.1.1.3)  Tx=3  Rx=0  Lost=3
+Flow 127 (10.1.1.11 -> 10.1.1.16)  Tx=5  Rx=4  Lost=1  Delay=134 ms
+Flow 128 (10.1.1.12 -> 10.1.1.18)  Tx=7  Rx=7  Lost=0  Delay=165 ms
+Flow 129 (10.1.1.10 -> 10.1.1.9)  Tx=4  Rx=0  Lost=4
+Flow 130 (10.1.1.18 -> 10.1.1.15)  Tx=7  Rx=6  Lost=1  Delay=367 ms
+Flow 131 (10.1.1.3 -> 10.1.1.12)  Tx=5  Rx=1  Lost=4  Delay=495 ms
+Flow 132 (10.1.1.17 -> 10.1.1.18)  Tx=8  Rx=8  Lost=0  Delay=42 ms
+Flow 133 (10.1.1.11 -> 10.1.1.18)  Tx=5  Rx=3  Lost=2  Delay=1174 ms
+Flow 134 (10.1.1.12 -> 10.1.1.11)  Tx=4  Rx=4  Lost=0  Delay=44 ms
+Flow 135 (10.1.1.1 -> 10.1.1.4)  Tx=11  Rx=11  Lost=0  Delay=469 ms
+Flow 136 (10.1.1.18 -> 10.1.1.9)  Tx=5  Rx=0  Lost=5
+Flow 137 (10.1.1.14 -> 10.1.1.8)  Tx=2  Rx=2  Lost=0  Delay=301 ms
+Flow 138 (10.1.1.15 -> 10.1.1.8)  Tx=4  Rx=4  Lost=0  Delay=759 ms
+Flow 139 (10.1.1.13 -> 10.1.1.4)  Tx=1  Rx=0  Lost=1
+Flow 140 (10.1.1.1 -> 10.1.1.7)  Tx=2  Rx=0  Lost=2
+Flow 141 (10.1.1.10 -> 10.1.1.7)  Tx=3  Rx=0  Lost=3
+Flow 142 (10.1.1.17 -> 10.1.1.13)  Tx=1  Rx=1  Lost=0  Delay=2428 ms
+Flow 143 (10.1.1.3 -> 10.1.1.6)  Tx=1  Rx=0  Lost=1
+Flow 144 (10.1.1.9 -> 10.1.1.6)  Tx=2  Rx=0  Lost=1
+Flow 145 (10.1.1.14 -> 10.1.1.2)  Tx=4  Rx=0  Lost=3
+Flow 146 (10.1.1.10 -> 10.1.1.2)  Tx=2  Rx=0  Lost=2
+Flow 147 (10.1.1.8 -> 10.1.1.10)  Tx=59  Rx=56  Lost=2  Delay=51 ms
+Flow 148 (10.1.1.13 -> 10.1.1.10)  Tx=2  Rx=2  Lost=0  Delay=555 ms
+Flow 149 (10.1.1.12 -> 10.1.1.10)  Tx=4  Rx=3  Lost=0  Delay=369 ms
+Flow 150 (10.1.1.11 -> 10.1.1.2)  Tx=1  Rx=0  Lost=1
+Flow 151 (10.1.1.10 -> 10.1.1.8)  Tx=3  Rx=3  Lost=0  Delay=244 ms
+Flow 152 (10.1.1.12 -> 10.1.1.8)  Tx=3  Rx=3  Lost=0  Delay=620 ms
+Flow 153 (10.1.1.6 -> 10.1.1.3)  Tx=3  Rx=0  Lost=3
+Flow 154 (10.1.1.15 -> 10.1.1.3)  Tx=1  Rx=0  Lost=1
+Flow 155 (10.1.1.12 -> 10.1.1.1)  Tx=11  Rx=10  Lost=1  Delay=342 ms
+Flow 156 (10.1.1.9 -> 10.1.1.2)  Tx=1  Rx=0  Lost=1
+Flow 157 (10.1.1.8 -> 10.1.1.2)  Tx=1  Rx=0  Lost=1
+Flow 158 (10.1.1.15 -> 10.1.1.12)  Tx=2  Rx=2  Lost=0  Delay=415 ms
+Flow 159 (10.1.1.14 -> 10.1.1.7)  Tx=3  Rx=3  Lost=0  Delay=244 ms
+Flow 160 (10.1.1.5 -> 10.1.1.8)  Tx=4  Rx=0  Lost=4
+Flow 161 (10.1.1.7 -> 10.1.1.2)  Tx=1  Rx=0  Lost=1
+Flow 162 (10.1.1.11 -> 10.1.1.4)  Tx=84  Rx=84  Lost=0  Delay=319 ms
+Flow 163 (10.1.1.17 -> 10.1.1.7)  Tx=1  Rx=0  Lost=1
+Flow 164 (10.1.1.20 -> 10.1.1.13)  Tx=4  Rx=0  Lost=4
+Flow 165 (10.1.1.12 -> 10.1.1.4)  Tx=1  Rx=1  Lost=0  Delay=44 ms
+Flow 166 (10.1.1.17 -> 10.1.1.20)  Tx=14  Rx=12  Lost=2  Delay=23 ms
+Flow 167 (10.1.1.10 -> 10.1.1.13)  Tx=2  Rx=2  Lost=0  Delay=153 ms
+Flow 168 (10.1.1.19 -> 10.1.1.13)  Tx=2  Rx=1  Lost=1  Delay=69 ms
+Flow 169 (10.1.1.4 -> 10.1.1.1)  Tx=12  Rx=9  Lost=3  Delay=171 ms
+Flow 170 (10.1.1.15 -> 10.1.1.7)  Tx=7  Rx=0  Lost=7
+Flow 171 (10.1.1.17 -> 10.1.1.8)  Tx=3  Rx=3  Lost=0  Delay=1038 ms
+Flow 172 (10.1.1.7 -> 10.1.1.4)  Tx=2  Rx=2  Lost=0  Delay=75 ms
+Flow 173 (10.1.1.4 -> 10.1.1.12)  Tx=4  Rx=0  Lost=4
+Flow 174 (10.1.1.14 -> 10.1.1.11)  Tx=3  Rx=2  Lost=1  Delay=568 ms
+Flow 175 (10.1.1.10 -> 10.1.1.11)  Tx=1  Rx=0  Lost=1
+Flow 176 (10.1.1.15 -> 10.1.1.11)  Tx=5  Rx=0  Lost=5
+Flow 177 (10.1.1.18 -> 10.1.1.11)  Tx=3  Rx=3  Lost=0  Delay=45 ms
+Flow 178 (10.1.1.14 -> 10.1.1.6)  Tx=2  Rx=2  Lost=0  Delay=36 ms
+Flow 179 (10.1.1.18 -> 10.1.1.6)  Tx=3  Rx=3  Lost=0  Delay=547 ms
+Flow 180 (10.1.1.6 -> 10.1.1.14)  Tx=5  Rx=3  Lost=2  Delay=1696 ms
+Flow 181 (10.1.1.6 -> 10.1.1.4)  Tx=2  Rx=0  Lost=2
+Flow 182 (10.1.1.6 -> 10.1.1.5)  Tx=2  Rx=0  Lost=2
+Flow 183 (10.1.1.14 -> 10.1.1.1)  Tx=6  Rx=6  Lost=0  Delay=54 ms
+Flow 184 (10.1.1.1 -> 10.1.1.9)  Tx=3  Rx=3  Lost=0  Delay=556 ms
+Flow 185 (10.1.1.1 -> 10.1.1.14)  Tx=9  Rx=0  Lost=9
+Flow 186 (10.1.1.11 -> 10.1.1.14)  Tx=1  Rx=1  Lost=0  Delay=257 ms
+Flow 187 (10.1.1.1 -> 10.1.1.5)  Tx=5  Rx=5  Lost=0  Delay=121 ms
+Flow 188 (10.1.1.12 -> 10.1.1.5)  Tx=2  Rx=2  Lost=0  Delay=176 ms
+Flow 189 (10.1.1.3 -> 10.1.1.17)  Tx=2  Rx=0  Lost=2
+Flow 190 (10.1.1.8 -> 10.1.1.5)  Tx=2  Rx=1  Lost=1  Delay=500 ms
+Flow 191 (10.1.1.8 -> 10.1.1.17)  Tx=6  Rx=1  Lost=5  Delay=210 ms
+Flow 192 (10.1.1.7 -> 10.1.1.5)  Tx=3  Rx=3  Lost=0  Delay=200 ms
+Flow 193 (10.1.1.11 -> 10.1.1.5)  Tx=4  Rx=3  Lost=1  Delay=421 ms
+Flow 194 (10.1.1.10 -> 10.1.1.17)  Tx=5  Rx=0  Lost=5
+Flow 195 (10.1.1.9 -> 10.1.1.4)  Tx=5  Rx=5  Lost=0  Delay=27 ms
+Flow 196 (10.1.1.5 -> 10.1.1.4)  Tx=15  Rx=14  Lost=1  Delay=78 ms
+Flow 197 (10.1.1.5 -> 10.1.1.12)  Tx=1  Rx=1  Lost=0  Delay=84 ms
+Flow 198 (10.1.1.5 -> 10.1.1.7)  Tx=1  Rx=1  Lost=0  Delay=1690 ms
+Flow 199 (10.1.1.10 -> 10.1.1.3)  Tx=3  Rx=0  Lost=3
+Flow 200 (10.1.1.10 -> 10.1.1.18)  Tx=5  Rx=0  Lost=3
+Flow 201 (10.1.1.18 -> 10.1.1.3)  Tx=1  Rx=1  Lost=0  Delay=597 ms
+Flow 202 (10.1.1.11 -> 10.1.1.3)  Tx=2  Rx=2  Lost=0  Delay=476 ms
+Flow 203 (10.1.1.7 -> 10.1.1.18)  Tx=7  Rx=5  Lost=2  Delay=63 ms
+Flow 204 (10.1.1.15 -> 10.1.1.18)  Tx=4  Rx=3  Lost=1  Delay=84 ms
+Flow 205 (10.1.1.18 -> 10.1.1.7)  Tx=3  Rx=3  Lost=0  Delay=22 ms
+Flow 206 (10.1.1.7 -> 10.1.1.14)  Tx=2  Rx=0  Lost=2
+Flow 207 (10.1.1.5 -> 10.1.1.11)  Tx=2  Rx=1  Lost=1  Delay=1832 ms
+Flow 208 (10.1.1.3 -> 10.1.1.11)  Tx=3  Rx=1  Lost=2  Delay=500 ms
+Flow 209 (10.1.1.17 -> 10.1.1.15)  Tx=4  Rx=0  Lost=2
+Flow 210 (10.1.1.9 -> 10.1.1.1)  Tx=1  Rx=1  Lost=0  Delay=199 ms
+Flow 211 (10.1.1.15 -> 10.1.1.17)  Tx=4  Rx=2  Lost=2  Delay=29 ms
+Flow 212 (10.1.1.16 -> 10.1.1.7)  Tx=3  Rx=0  Lost=2
+Flow 213 (10.1.1.7 -> 10.1.1.1)  Tx=1  Rx=1  Lost=0  Delay=60 ms
+Flow 214 (10.1.1.16 -> 10.1.1.19)  Tx=8  Rx=5  Lost=2  Delay=259 ms
+Flow 215 (10.1.1.16 -> 10.1.1.14)  Tx=3  Rx=3  Lost=0  Delay=596 ms
+Flow 216 (10.1.1.19 -> 10.1.1.10)  Tx=4  Rx=0  Lost=4
+Flow 217 (10.1.1.3 -> 10.1.1.18)  Tx=1  Rx=0  Lost=1
+Flow 218 (10.1.1.18 -> 10.1.1.1)  Tx=9  Rx=9  Lost=0  Delay=438 ms
+Flow 219 (10.1.1.17 -> 10.1.1.2)  Tx=3  Rx=0  Lost=3
+Flow 220 (10.1.1.9 -> 10.1.1.18)  Tx=4  Rx=0  Lost=3
+Flow 221 (10.1.1.19 -> 10.1.1.16)  Tx=5  Rx=4  Lost=0  Delay=1779 ms
+Flow 222 (10.1.1.11 -> 10.1.1.10)  Tx=2  Rx=0  Lost=2
+Flow 223 (10.1.1.20 -> 10.1.1.17)  Tx=12  Rx=9  Lost=3  Delay=264 ms
+Flow 224 (10.1.1.16 -> 10.1.1.13)  Tx=1  Rx=1  Lost=0  Delay=15 ms
+Flow 225 (10.1.1.16 -> 10.1.1.20)  Tx=8  Rx=6  Lost=2  Delay=41 ms
+Flow 226 (10.1.1.13 -> 10.1.1.16)  Tx=3  Rx=2  Lost=1  Delay=12 ms
+Flow 227 (10.1.1.20 -> 10.1.1.2)  Tx=2  Rx=2  Lost=0  Delay=1177 ms
+Flow 228 (10.1.1.20 -> 10.1.1.16)  Tx=4  Rx=4  Lost=0  Delay=34 ms
+Flow 229 (10.1.1.19 -> 10.1.1.2)  Tx=6  Rx=5  Lost=1  Delay=37 ms
+Flow 230 (10.1.1.17 -> 10.1.1.10)  Tx=8  Rx=0  Lost=4
+Flow 231 (10.1.1.4 -> 10.1.1.5)  Tx=11  Rx=10  Lost=1  Delay=117 ms
+Flow 232 (10.1.1.13 -> 10.1.1.2)  Tx=2  Rx=0  Lost=2
+Flow 233 (10.1.1.16 -> 10.1.1.2)  Tx=3  Rx=0  Lost=3
+Flow 234 (10.1.1.11 -> 10.1.1.20)  Tx=10  Rx=9  Lost=1  Delay=545 ms
+Flow 235 (10.1.1.12 -> 10.1.1.20)  Tx=10  Rx=10  Lost=0  Delay=44 ms
+Flow 236 (10.1.1.2 -> 10.1.1.1)  Tx=5  Rx=1  Lost=4  Delay=42 ms
+Flow 237 (10.1.1.2 -> 10.1.1.20)  Tx=7  Rx=5  Lost=2  Delay=140 ms
+Flow 238 (10.1.1.1 -> 10.1.1.12)  Tx=5  Rx=2  Lost=3  Delay=270 ms
+Flow 239 (10.1.1.2 -> 10.1.1.11)  Tx=1  Rx=0  Lost=1
+Flow 240 (10.1.1.6 -> 10.1.1.20)  Tx=8  Rx=2  Lost=5  Delay=203 ms
+Flow 241 (10.1.1.18 -> 10.1.1.20)  Tx=11  Rx=10  Lost=1  Delay=76 ms
+Flow 242 (10.1.1.20 -> 10.1.1.1)  Tx=8  Rx=8  Lost=0  Delay=80 ms
+Flow 243 (10.1.1.3 -> 10.1.1.1)  Tx=3  Rx=0  Lost=3
+Flow 244 (10.1.1.3 -> 10.1.1.20)  Tx=2  Rx=0  Lost=2
+Flow 245 (10.1.1.19 -> 10.1.1.1)  Tx=7  Rx=7  Lost=0  Delay=105 ms
+Flow 246 (10.1.1.8 -> 10.1.1.1)  Tx=1  Rx=0  Lost=1
+Flow 247 (10.1.1.8 -> 10.1.1.20)  Tx=14  Rx=0  Lost=8
+Flow 248 (10.1.1.1 -> 10.1.1.18)  Tx=7  Rx=5  Lost=1  Delay=901 ms
+Flow 249 (10.1.1.14 -> 10.1.1.20)  Tx=8  Rx=7  Lost=1  Delay=590 ms
+Flow 250 (10.1.1.1 -> 10.1.1.19)  Tx=9  Rx=0  Lost=8
+Flow 251 (10.1.1.14 -> 10.1.1.16)  Tx=9  Rx=0  Lost=8
+Flow 252 (10.1.1.10 -> 10.1.1.1)  Tx=6  Rx=5  Lost=1  Delay=390 ms
+Flow 253 (10.1.1.17 -> 10.1.1.1)  Tx=37  Rx=35  Lost=2  Delay=208 ms
+Flow 254 (10.1.1.18 -> 10.1.1.2)  Tx=2  Rx=0  Lost=2
+Flow 255 (10.1.1.1 -> 10.1.1.2)  Tx=2  Rx=0  Lost=2
+Flow 256 (10.1.1.6 -> 10.1.1.2)  Tx=7  Rx=0  Lost=1
+Flow 257 (10.1.1.6 -> 10.1.1.19)  Tx=2  Rx=0  Lost=2
+Flow 258 (10.1.1.12 -> 10.1.1.19)  Tx=6  Rx=5  Lost=1  Delay=50 ms
+Flow 259 (10.1.1.2 -> 10.1.1.18)  Tx=1  Rx=0  Lost=1
+Flow 260 (10.1.1.20 -> 10.1.1.11)  Tx=16  Rx=15  Lost=1  Delay=356 ms
+Flow 261 (10.1.1.1 -> 10.1.1.17)  Tx=11  Rx=7  Lost=4  Delay=239 ms
+Flow 262 (10.1.1.20 -> 10.1.1.10)  Tx=3  Rx=3  Lost=0  Delay=31 ms
+Flow 263 (10.1.1.19 -> 10.1.1.11)  Tx=1  Rx=1  Lost=0  Delay=1080 ms
+Flow 264 (10.1.1.3 -> 10.1.1.10)  Tx=5  Rx=0  Lost=3
+Flow 265 (10.1.1.8 -> 10.1.1.11)  Tx=1  Rx=0  Lost=1
+Flow 266 (10.1.1.1 -> 10.1.1.10)  Tx=5  Rx=3  Lost=2  Delay=136 ms
+Flow 267 (10.1.1.10 -> 10.1.1.12)  Tx=7  Rx=3  Lost=4  Delay=130 ms
+Flow 268 (10.1.1.6 -> 10.1.1.10)  Tx=4  Rx=0  Lost=3
+Flow 269 (10.1.1.3 -> 10.1.1.14)  Tx=1  Rx=0  Lost=1
+Flow 270 (10.1.1.20 -> 10.1.1.12)  Tx=3  Rx=3  Lost=0  Delay=66 ms
+Flow 271 (10.1.1.19 -> 10.1.1.12)  Tx=2  Rx=2  Lost=0  Delay=154 ms
+Flow 272 (10.1.1.1 -> 10.1.1.20)  Tx=1  Rx=1  Lost=0  Delay=66 ms
+Flow 273 (10.1.1.2 -> 10.1.1.16)  Tx=1  Rx=0  Lost=1
+Flow 274 (10.1.1.20 -> 10.1.1.5)  Tx=16  Rx=10  Lost=6  Delay=217 ms
+Flow 275 (10.1.1.14 -> 10.1.1.5)  Tx=4  Rx=0  Lost=3
+Flow 276 (10.1.1.20 -> 10.1.1.4)  Tx=2  Rx=2  Lost=0  Delay=3620 ms
+Flow 277 (10.1.1.12 -> 10.1.1.15)  Tx=3  Rx=3  Lost=0  Delay=7 ms
+Flow 278 (10.1.1.17 -> 10.1.1.5)  Tx=3  Rx=0  Lost=3
+Flow 279 (10.1.1.10 -> 10.1.1.6)  Tx=2  Rx=2  Lost=0  Delay=1252 ms
+Flow 280 (10.1.1.17 -> 10.1.1.6)  Tx=2  Rx=0  Lost=1
+Flow 281 (10.1.1.12 -> 10.1.1.16)  Tx=7  Rx=5  Lost=0  Delay=51 ms
+Flow 282 (10.1.1.5 -> 10.1.1.16)  Tx=1  Rx=0  Lost=1
+Flow 283 (10.1.1.5 -> 10.1.1.1)  Tx=7  Rx=6  Lost=1  Delay=641 ms
+Flow 284 (10.1.1.5 -> 10.1.1.20)  Tx=6  Rx=0  Lost=3
+Flow 285 (10.1.1.4 -> 10.1.1.20)  Tx=8  Rx=0  Lost=5
+Flow 286 (10.1.1.6 -> 10.1.1.18)  Tx=2  Rx=0  Lost=2
+Flow 287 (10.1.1.8 -> 10.1.1.16)  Tx=6  Rx=6  Lost=0  Delay=860 ms
+Flow 288 (10.1.1.10 -> 10.1.1.16)  Tx=2  Rx=0  Lost=1
+Flow 289 (10.1.1.15 -> 10.1.1.1)  Tx=3  Rx=3  Lost=0  Delay=856 ms
+Flow 290 (10.1.1.9 -> 10.1.1.20)  Tx=6  Rx=6  Lost=0  Delay=53 ms
+Flow 291 (10.1.1.15 -> 10.1.1.4)  Tx=4  Rx=4  Lost=0  Delay=25 ms
+Flow 292 (10.1.1.15 -> 10.1.1.16)  Tx=2  Rx=1  Lost=1  Delay=96 ms
+Flow 293 (10.1.1.17 -> 10.1.1.4)  Tx=2  Rx=2  Lost=0  Delay=22 ms
+Flow 294 (10.1.1.4 -> 10.1.1.17)  Tx=1  Rx=0  Lost=1
+Flow 295 (10.1.1.4 -> 10.1.1.15)  Tx=4  Rx=4  Lost=0  Delay=232 ms
+Flow 296 (10.1.1.19 -> 10.1.1.5)  Tx=1  Rx=0  Lost=1
+Flow 297 (10.1.1.20 -> 10.1.1.9)  Tx=1  Rx=1  Lost=0  Delay=2003 ms
+Flow 298 (10.1.1.17 -> 10.1.1.9)  Tx=2  Rx=2  Lost=0  Delay=256 ms
+Flow 299 (10.1.1.16 -> 10.1.1.9)  Tx=3  Rx=3  Lost=0  Delay=10 ms
+Flow 300 (10.1.1.9 -> 10.1.1.16)  Tx=2  Rx=1  Lost=1  Delay=2 ms
+Flow 301 (10.1.1.5 -> 10.1.1.2)  Tx=1  Rx=1  Lost=0  Delay=1792 ms
+Flow 302 (10.1.1.5 -> 10.1.1.19)  Tx=2  Rx=2  Lost=0  Delay=2343 ms
+Flow 303 (10.1.1.9 -> 10.1.1.17)  Tx=5  Rx=5  Lost=0  Delay=125 ms
+Flow 304 (10.1.1.20 -> 10.1.1.6)  Tx=3  Rx=3  Lost=0  Delay=1290 ms
+Flow 305 (10.1.1.16 -> 10.1.1.6)  Tx=2  Rx=2  Lost=0  Delay=1173 ms
+Flow 306 (10.1.1.8 -> 10.1.1.6)  Tx=4  Rx=4  Lost=0  Delay=398 ms
+Flow 307 (10.1.1.4 -> 10.1.1.14)  Tx=1  Rx=1  Lost=0  Delay=668 ms
+Flow 308 (10.1.1.4 -> 10.1.1.19)  Tx=1  Rx=1  Lost=0  Delay=1002 ms
+Flow 309 (10.1.1.20 -> 10.1.1.8)  Tx=3  Rx=3  Lost=0  Delay=302 ms
+Flow 310 (10.1.1.16 -> 10.1.1.8)  Tx=2  Rx=2  Lost=0  Delay=398 ms
+Flow 311 (10.1.1.9 -> 10.1.1.11)  Tx=2  Rx=2  Lost=0  Delay=221 ms
+Flow 312 (10.1.1.5 -> 10.1.1.17)  Tx=1  Rx=1  Lost=0  Delay=596 ms
+Flow 313 (10.1.1.6 -> 10.1.1.15)  Tx=2  Rx=1  Lost=0  Delay=276 ms
+Flow 314 (10.1.1.16 -> 10.1.1.15)  Tx=1  Rx=0  Lost=0
+Flow 315 (10.1.1.19 -> 10.1.1.8)  Tx=2  Rx=2  Lost=0  Delay=502 ms
+Flow 316 (10.1.1.5 -> 10.1.1.18)  Tx=1  Rx=0  Lost=0
+Flow 317 (10.1.1.7 -> 10.1.1.16)  Tx=1  Rx=1  Lost=0  Delay=99 ms
+Flow 318 (10.1.1.8 -> 10.1.1.19)  Tx=2  Rx=2  Lost=0  Delay=530 ms
+Flow 319 (10.1.1.19 -> 10.1.1.9)  Tx=1  Rx=1  Lost=0  Delay=31 ms
+Flow 320 (10.1.1.2 -> 10.1.1.5)  Tx=5  Rx=4  Lost=0  Delay=175 ms
+Flow 321 (10.1.1.1 -> 10.1.1.15)  Tx=3  Rx=3  Lost=0  Delay=12 ms
+Flow 322 (10.1.1.15 -> 10.1.1.6)  Tx=3  Rx=0  Lost=0
+Flow 323 (10.1.1.6 -> 10.1.1.8)  Tx=1  Rx=1  Lost=0  Delay=29 ms
+Flow 324 (10.1.1.7 -> 10.1.1.20)  Tx=1  Rx=1  Lost=0  Delay=37 ms
+Flow 325 (10.1.1.12 -> 10.1.1.13)  Tx=1  Rx=1  Lost=0  Delay=43 ms
+Flow 326 (10.1.1.18 -> 10.1.1.10)  Tx=1  Rx=1  Lost=0  Delay=27 ms
+Flow 327 (10.1.1.7 -> 10.1.1.10)  Tx=1  Rx=1  Lost=0  Delay=9 ms
+Total Energy Consumed: 709.5230 J
+Avg Energy Per Node:   35.4761 J
+
+========================================
+  RESULTS - Standard AODV (20 nodes)
+========================================
+Tx Packets:       30918
+Rx Packets:       3481
+Lost Packets:     27437
+PDR:              11.26 %
+Packet Loss Rate: 88.74 %
+Avg E2E Delay:    419.7938 ms
+Throughput:       345.49 Kbps
+Total Energy:     709.5230 J
+Avg Energy/Node:  35.4761 J
+========================================
+
+Results appended to: targets/targeted-802154-aodv-n20-f10-s25-results.csv

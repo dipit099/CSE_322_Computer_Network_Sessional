@@ -1,0 +1,13 @@
+Bonus Opportunities
+You can earn bonus points in several areas:
+
+
+
+Measuring extra metrics: Examples include per-node throughput or the variation in queue size over time.
+{ If possible. DOnt try too much changes to adapt these}
+
+Brand new idea: Implementing a novel idea with good performance improvement that does not exist in current literature can earn a double bonus.
+FOCUS ON THIS if possible.
+
+Important Note on Performance:
+It is not mandatory that your modified mechanism results in a performance improvement. The primary requirement is to clearly demonstrate what changes you made and explain the intuition behind them.

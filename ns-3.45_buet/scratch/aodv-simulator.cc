@@ -3,6 +3,7 @@
 #include "ns3/aodv-routing-protocol.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
+#include "ns3/energy-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/ipv4-list-routing.h"
@@ -25,6 +26,7 @@
 #include <vector>
 
 using namespace ns3;
+using namespace ns3::energy;
 using namespace std;
 
 NS_LOG_COMPONENT_DEFINE("AodvSimulator");
@@ -54,6 +56,11 @@ struct SimulationOptions
     double w1 = 0.5;
     double w2 = 0.3;
     double w3 = 0.2;
+    // Traffic parameters
+    uint32_t pps = 0;           // packets per second (0 = use default 4 pps)
+    uint32_t packetSize = 512;  // bytes per packet
+    // Network type
+    string networkType = "802.11"; // "802.11" or "802.15.4"
 };
 
 struct Metrics
@@ -67,6 +74,8 @@ struct Metrics
     double lossRate = 0.0;
     double avgDelayMs = 0.0;
     double throughputKbps = 0.0;
+    double totalEnergyJ = 0.0;       // Total energy consumed (Joules) across all nodes
+    double avgEnergyPerNodeJ = 0.0;  // Average energy per node (Joules)
 };
 
 struct RouteEntry
@@ -506,6 +515,10 @@ ParseArgs(int argc, char* argv[])
     cmd.AddValue("w1", "ECC-AODV QACD weight for queue occupancy", opt.w1);
     cmd.AddValue("w2", "ECC-AODV QACD weight for congestion counter", opt.w2);
     cmd.AddValue("w3", "ECC-AODV QACD weight for drop rate", opt.w3);
+    cmd.AddValue("pps", "Packets per second per flow (0=use default 4 pps)", opt.pps);
+    cmd.AddValue("packetSize", "UDP payload size in bytes", opt.packetSize);
+    cmd.AddValue("networkType", "Network type: 802.11 or 802.15.4", opt.networkType);
+    cmd.AddValue("outputDir", "Directory to write output CSVs and traces", opt.outputDir);
     cmd.AddValue("flowSrcNode",
                  "Source node for route discovery filter (-1 disables filter)",
                  opt.flowSrcNode);
@@ -676,6 +689,49 @@ SetupWifi(NodeContainer& nodes, YansWifiPhyHelper& wifiPhy)
     return wifi.Install(wifiPhy, wifiMac, nodes);
 }
 
+// 802.15.4-approximated network
+// Lower PHY data rate (1 Mbps) and limited range (200 m) via RangePropagationLossModel
+// 802.15.4 outdoor LOS range is typically 75–200 m at max Tx power (0–5 dBm)
+// Application PPS controls throughput to approximate 802.15.4 250 Kbps data rate
+NetDeviceContainer
+SetupLrWpanApprox(NodeContainer& nodes, YansWifiPhyHelper& wifiPhy)
+{
+    WifiHelper wifi;
+    wifi.SetStandard(WIFI_STANDARD_80211b);
+    wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
+                                 "DataMode",
+                                 StringValue("DsssRate1Mbps"),
+                                 "ControlMode",
+                                 StringValue("DsssRate1Mbps"));
+
+    WifiMacHelper wifiMac;
+    wifiMac.SetType("ns3::AdhocWifiMac");
+
+    YansWifiChannelHelper wifiChannel;
+    wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
+    // Friis for path loss within range + range cap at 200 m (802.15.4 outdoor spec)
+    wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
+    wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel",
+                                   "MaxRange",
+                                   DoubleValue(200.0));
+    wifiPhy.SetChannel(wifiChannel.Create());
+
+    return wifi.Install(wifiPhy, wifiMac, nodes);
+}
+
+EnergySourceContainer
+SetupEnergy(NodeContainer& nodes, NetDeviceContainer& devices)
+{
+    BasicEnergySourceHelper energySourceHelper;
+    energySourceHelper.Set("BasicEnergySourceInitialEnergyJ", DoubleValue(100.0));
+    EnergySourceContainer sources = energySourceHelper.Install(nodes);
+
+    WifiRadioEnergyModelHelper radioEnergyHelper;
+    radioEnergyHelper.Install(devices, sources);
+
+    return sources;
+}
+
 void
 SetupMobility(const SimulationOptions& opt, NodeContainer& nodes)
 {
@@ -739,8 +795,9 @@ InstallTraffic(const SimulationOptions& opt,
                const Ipv4InterfaceContainer& interfaces)
 {
     uint16_t port = 9;
-    double packetRate = 4.0;
-    uint32_t packetSize = 512;
+    uint32_t packetSize = opt.packetSize;
+    // If pps specified use it; otherwise fall back to 4 pps default
+    double packetRate = (opt.pps > 0) ? static_cast<double>(opt.pps) : 4.0;
 
     ApplicationContainer sourceApps;
     ApplicationContainer sinkApps;
@@ -896,7 +953,10 @@ SetupTracing(const SimulationOptions& opt,
 }
 
 Metrics
-CollectMetrics(FlowMonitorHelper& flowmonHelper, Ptr<FlowMonitor> flowmon, double simTime)
+CollectMetrics(FlowMonitorHelper& flowmonHelper,
+               Ptr<FlowMonitor> flowmon,
+               double simTime,
+               const EnergySourceContainer& energySources)
 {
     flowmon->CheckForLostPackets();
 
@@ -944,6 +1004,24 @@ CollectMetrics(FlowMonitorHelper& flowmonHelper, Ptr<FlowMonitor> flowmon, doubl
     m.avgDelayMs = (m.totalRx > 0) ? (m.totalDelay / m.totalRx * 1000.0) : 0.0;
     m.throughputKbps = (m.totalBytes * 8.0) / simTime / 1000.0;
 
+    // Energy: sum energy consumed = initialEnergy - remainingEnergy across all nodes
+    double totalConsumed = 0.0;
+    uint32_t nSources = 0;
+    for (auto it = energySources.Begin(); it != energySources.End(); ++it)
+    {
+        Ptr<BasicEnergySource> src = DynamicCast<BasicEnergySource>(*it);
+        if (src)
+        {
+            totalConsumed += (100.0 - src->GetRemainingEnergy());
+            nSources++;
+        }
+    }
+    m.totalEnergyJ = totalConsumed;
+    m.avgEnergyPerNodeJ = (nSources > 0) ? (totalConsumed / nSources) : 0.0;
+
+    cout << "Total Energy Consumed: " << fixed << setprecision(4) << m.totalEnergyJ << " J\n";
+    cout << "Avg Energy Per Node:   " << fixed << setprecision(4) << m.avgEnergyPerNodeJ << " J\n";
+
     return m;
 }
 
@@ -960,6 +1038,8 @@ PrintMetrics(const string& protocolLabel, uint32_t nNodes, const Metrics& m)
     cout << "Packet Loss Rate: " << fixed << setprecision(2) << m.lossRate << " %\n";
     cout << "Avg E2E Delay:    " << fixed << setprecision(4) << m.avgDelayMs << " ms\n";
     cout << "Throughput:       " << fixed << setprecision(2) << m.throughputKbps << " Kbps\n";
+    cout << "Total Energy:     " << fixed << setprecision(4) << m.totalEnergyJ << " J\n";
+    cout << "Avg Energy/Node:  " << fixed << setprecision(4) << m.avgEnergyPerNodeJ << " J\n";
     cout << "========================================\n";
 }
 
@@ -1009,18 +1089,22 @@ WriteCsv(const SimulationOptions& opt, const string& protocolLabel, const Metric
     ofstream csv(csvPath, ios::app);
     if (writeHeader)
     {
-        csv << "Protocol,Mode,Nodes,Sinks,Seed,Trace,SimTime,MinSpeed,MaxSpeed,CcBaseThreshold,"
+        csv << "Protocol,Mode,NetworkType,Nodes,Sinks,PPS,PacketSize,Seed,SimTime,"
+               "MinSpeed,MaxSpeed,CcBaseThreshold,"
                "TxPackets,RxPackets,LostPackets,PDR(%),PacketLossRate(%),AvgE2EDelay(ms),"
-               "Throughput(Kbps)\n";
+               "Throughput(Kbps),TotalEnergyJ,AvgEnergyPerNodeJ\n";
     }
 
-    csv << protocolLabel << "," << opt.mode << "," << opt.nNodes << "," << opt.nSinks << ","
-        << opt.seed << "," << (opt.trace ? 1 : 0) << "," << fixed << setprecision(2) << opt.simTime
-        << "," << fixed << setprecision(2) << opt.minSpeed << "," << fixed << setprecision(2)
-        << opt.maxSpeed << "," << opt.ccBaseThreshold << "," << m.totalTx << "," << m.totalRx << ","
-        << m.totalLost << "," << fixed << setprecision(2) << m.pdr << "," << fixed
-        << setprecision(2) << m.lossRate << "," << fixed << setprecision(4) << m.avgDelayMs << ","
-        << fixed << setprecision(2) << m.throughputKbps << "\n";
+    uint32_t effectivePps = (opt.pps > 0) ? opt.pps : 4;
+    csv << protocolLabel << "," << opt.mode << "," << opt.networkType << "," << opt.nNodes << ","
+        << opt.nSinks << "," << effectivePps << "," << opt.packetSize << "," << opt.seed << ","
+        << fixed << setprecision(2) << opt.simTime << "," << fixed << setprecision(2)
+        << opt.minSpeed << "," << fixed << setprecision(2) << opt.maxSpeed << ","
+        << opt.ccBaseThreshold << "," << m.totalTx << "," << m.totalRx << "," << m.totalLost << ","
+        << fixed << setprecision(2) << m.pdr << "," << fixed << setprecision(2) << m.lossRate
+        << "," << fixed << setprecision(4) << m.avgDelayMs << "," << fixed << setprecision(2)
+        << m.throughputKbps << "," << fixed << setprecision(4) << m.totalEnergyJ << "," << fixed
+        << setprecision(4) << m.avgEnergyPerNodeJ << "\n";
 
     csv.close();
     cout << "\nResults appended to: " << csvPath << "\n";
@@ -1043,7 +1127,20 @@ main(int argc, char* argv[])
     nodes.Create(opt.nNodes);
 
     YansWifiPhyHelper wifiPhy;
-    NetDeviceContainer devices = SetupWifi(nodes, wifiPhy);
+    NetDeviceContainer devices;
+    if (opt.networkType == "802.15.4")
+    {
+        devices = SetupLrWpanApprox(nodes, wifiPhy);
+        cout << "Network: 802.15.4 approximation (1 Mbps PHY, Friis+Range≤200m)\n";
+    }
+    else
+    {
+        devices = SetupWifi(nodes, wifiPhy);
+        cout << "Network: 802.11b (11 Mbps PHY, Friis propagation)\n";
+    }
+
+    EnergySourceContainer energySources = SetupEnergy(nodes, devices);
+
     SetupMobility(opt, nodes);
     Ipv4InterfaceContainer interfaces = SetupInternet(opt, nodes, devices);
     g_flowTraceEnabled = false;
@@ -1063,7 +1160,7 @@ main(int argc, char* argv[])
     Simulator::Stop(Seconds(opt.simTime + opt.flowMonitorCleanupTime));
     Simulator::Run();
 
-    Metrics metrics = CollectMetrics(flowmonHelper, flowmon, opt.simTime);
+    Metrics metrics = CollectMetrics(flowmonHelper, flowmon, opt.simTime, energySources);
     PrintMetrics(protocolLabel, opt.nNodes, metrics);
     PrintTraceSummary(traceContext);
     WriteCsv(opt, protocolLabel, metrics);

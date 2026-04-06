@@ -180,6 +180,8 @@ RoutingProtocol::RoutingProtocol()
       m_w3(0.2),
       m_totalDrops(0),
       m_totalForwards(0),
+      m_dataDrops(0),
+      m_dataForwards(0),
       m_congestionLevel(0.0)
 {
     m_nb.SetCallback(MakeCallback(&RoutingProtocol::SendRerrWhenBreaksLinkToNextHop, this));
@@ -380,7 +382,25 @@ uint32_t
 RoutingProtocol::calculateAdaptiveThreshold() const
 {
     double threshold = static_cast<double>(m_baseThreshold);
-    threshold = threshold * (1.0 + static_cast<double>(m_avgNeighborCounter) / 10.0);
+
+    // Density-based scaling: use routing table size as proxy for network density
+    uint32_t networkSize = m_routingTable.GetSize();
+    if (networkSize <= 10)
+    {
+        threshold *= 0.6; // Small network: stricter threshold
+    }
+    else if (networkSize <= 30)
+    {
+        threshold *= 1.0; // Medium network: baseline
+    }
+    else
+    {
+        threshold *= 1.4; // Large network: more permissive
+    }
+
+    // Neighbor counter adjustment (EMA of neighbor congestion)
+    threshold *= (1.0 + static_cast<double>(m_avgNeighborCounter) / 10.0);
+
     return std::max(1u, static_cast<uint32_t>(threshold));
 }
 
@@ -399,18 +419,22 @@ RoutingProtocol::isNodeCongested() const
 double
 RoutingProtocol::calculateCongestionLevel() const
 {
+    // w1: queue occupancy — use AODV pending-route buffer as proxy
     double qMax = static_cast<double>(m_maxQueueLen);
     double qCurr = static_cast<double>(m_queue.GetSize());
     double qRatio = (qMax > 0.0) ? (qCurr / qMax) : 0.0;
 
+    // w2: congestion counter ratio vs adaptive threshold
     uint32_t effectiveThreshold = calculateAdaptiveThreshold();
     double counter = static_cast<double>(m_congestionCounter);
     double cRatio = (effectiveThreshold > 0)
                         ? std::min(counter / static_cast<double>(effectiveThreshold), 1.0)
                         : 1.0;
 
-    double totalPacket = static_cast<double>(m_totalDrops + m_totalForwards);
-    double dropRate = (totalPacket > 0.0) ? (static_cast<double>(m_totalDrops) / totalPacket) : 0.0;
+    // w3: actual data packet drop rate (not RREQ drop rate — fixes the circular-feedback bug)
+    double totalData = static_cast<double>(m_dataDrops + m_dataForwards);
+    double dropRate =
+        (totalData > 0.0) ? (static_cast<double>(m_dataDrops) / totalData) : 0.0;
 
     return m_w1 * qRatio + m_w2 * cRatio + m_w3 * dropRate;
 }
@@ -790,6 +814,11 @@ RoutingProtocol::Forwarding(Ptr<const Packet> p,
             m_nb.Update(route->GetGateway(), m_activeRouteTimeout);
             m_nb.Update(toOrigin.GetNextHop(), m_activeRouteTimeout);
 
+            // CHANGE: track successful data forward for QACD drop-rate metric
+            if (m_enableEccAodv)
+            {
+                m_dataForwards++;
+            }
             ucb(route, p, header);
             return true;
         }
@@ -797,6 +826,11 @@ RoutingProtocol::Forwarding(Ptr<const Packet> p,
         {
             if (toDst.GetValidSeqNo())
             {
+                // CHANGE: track data drop for QACD drop-rate metric
+                if (m_enableEccAodv)
+                {
+                    m_dataDrops++;
+                }
                 SendRerrWhenNoRouteToForward(dst, toDst.GetSeqNo(), origin);
                 NS_LOG_DEBUG("Drop packet " << p->GetUid() << " because no route to forward it.");
                 return false;
@@ -805,6 +839,11 @@ RoutingProtocol::Forwarding(Ptr<const Packet> p,
     }
     NS_LOG_LOGIC("route not found to " << dst << ". Send RERR message.");
     NS_LOG_DEBUG("Drop packet " << p->GetUid() << " because no route to forward it.");
+    // CHANGE: track data drop for QACD drop-rate metric
+    if (m_enableEccAodv)
+    {
+        m_dataDrops++;
+    }
     SendRerrWhenNoRouteToForward(dst, 0, origin);
     return false;
 }

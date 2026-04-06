@@ -1,0 +1,2 @@
+Protocol,Mode,NetworkType,Nodes,Sinks,PPS,PacketSize,Seed,SimTime,MinSpeed,MaxSpeed,CcBaseThreshold,TxPackets,RxPackets,LostPackets,PDR(%),PacketLossRate(%),AvgE2EDelay(ms),Throughput(Kbps),TotalEnergyJ,AvgEnergyPerNodeJ
+ECC-AODV,ecc-aodv,802.15.4,40,10,100,512,1,20.00,5.00,5.00,4,27245,7783,19462,28.57,71.43,161.2668,296.95,1042.6310,26.0658

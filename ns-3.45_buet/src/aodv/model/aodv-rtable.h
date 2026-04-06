@@ -509,6 +509,12 @@ class RoutingTable
         m_ipv4AddressEntry.clear();
     }
 
+    /// Get number of entries in routing table
+    uint32_t GetSize() const
+    {
+        return static_cast<uint32_t>(m_ipv4AddressEntry.size());
+    }
+
     /// Delete all outdated entries and invalidate valid entry if Lifetime is expired
     void Purge();
     /** Mark entry as unidirectional (e.g. add this neighbor to "blacklist" for blacklistTimeout
