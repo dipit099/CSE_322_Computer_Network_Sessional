@@ -1,0 +1,19 @@
+## NS-3 / simulation outputs
+**/output/
+**/outputs/
+**/targetsv2/
+**/targets_logsv2/
+**/testpy-output/
+**/build/
+**/cmake-cache/
+
+## Generated traces and logs
+**/*.log
+**/*.pcap
+**/*.tr
+**/*-results.csv
+
+## Python cache / temp files
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
