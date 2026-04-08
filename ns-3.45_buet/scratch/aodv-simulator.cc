@@ -59,8 +59,11 @@ struct SimulationOptions
     // Traffic parameters
     uint32_t pps = 0;           // packets per second (0 = use default 4 pps)
     uint32_t packetSize = 512;  // bytes per packet
-    // Network type
-    string networkType = "802.11"; // "802.11" or "802.15.4"
+    // Topology: "mobile" => RandomWaypoint, "static" => fixed grid
+    string topology = "mobile";
+    // For static topology: side length = areaMultiplier * txRange (txRange ~250m at 802.11b/Friis)
+    double areaMultiplier = 1.0;
+    double txRange = 250.0;  // meters (802.11b reference Tx range)
 };
 
 struct Metrics
@@ -517,8 +520,12 @@ ParseArgs(int argc, char* argv[])
     cmd.AddValue("w3", "ECC-AODV QACD weight for drop rate", opt.w3);
     cmd.AddValue("pps", "Packets per second per flow (0=use default 4 pps)", opt.pps);
     cmd.AddValue("packetSize", "UDP payload size in bytes", opt.packetSize);
-    cmd.AddValue("networkType", "Network type: 802.11 or 802.15.4", opt.networkType);
     cmd.AddValue("outputDir", "Directory to write output CSVs and traces", opt.outputDir);
+    cmd.AddValue("topology", "Topology: mobile | static", opt.topology);
+    cmd.AddValue("areaMultiplier",
+                 "Static topology: side length = areaMultiplier * txRange",
+                 opt.areaMultiplier);
+    cmd.AddValue("txRange", "Reference Tx range in meters (for static area sizing)", opt.txRange);
     cmd.AddValue("flowSrcNode",
                  "Source node for route discovery filter (-1 disables filter)",
                  opt.flowSrcNode);
@@ -611,6 +618,11 @@ PrintConfig(const SimulationOptions& opt,
     cout << "========================================\n";
     cout << "Protocol:  " << protocolLabel << "\n";
     cout << "Mode:      " << opt.mode << "\n";
+    cout << "Topology:  " << opt.topology
+         << (opt.topology == "static"
+                 ? string(" (areaMul=") + to_string(opt.areaMultiplier) + ")"
+                 : string(""))
+         << "\n";
     cout << "Nodes:     " << opt.nNodes << "\n";
     cout << "SimTime:   " << opt.simTime << " s\n";
     cout << "Speed:     " << opt.minSpeed << ".." << opt.maxSpeed << " m/s\n";
@@ -689,36 +701,6 @@ SetupWifi(NodeContainer& nodes, YansWifiPhyHelper& wifiPhy)
     return wifi.Install(wifiPhy, wifiMac, nodes);
 }
 
-// 802.15.4-approximated network
-// Lower PHY data rate (1 Mbps) and limited range (200 m) via RangePropagationLossModel
-// 802.15.4 outdoor LOS range is typically 75–200 m at max Tx power (0–5 dBm)
-// Application PPS controls throughput to approximate 802.15.4 250 Kbps data rate
-NetDeviceContainer
-SetupLrWpanApprox(NodeContainer& nodes, YansWifiPhyHelper& wifiPhy)
-{
-    WifiHelper wifi;
-    wifi.SetStandard(WIFI_STANDARD_80211b);
-    wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
-                                 "DataMode",
-                                 StringValue("DsssRate1Mbps"),
-                                 "ControlMode",
-                                 StringValue("DsssRate1Mbps"));
-
-    WifiMacHelper wifiMac;
-    wifiMac.SetType("ns3::AdhocWifiMac");
-
-    YansWifiChannelHelper wifiChannel;
-    wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-    // Friis for path loss within range + range cap at 200 m (802.15.4 outdoor spec)
-    wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
-    wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel",
-                                   "MaxRange",
-                                   DoubleValue(200.0));
-    wifiPhy.SetChannel(wifiChannel.Create());
-
-    return wifi.Install(wifiPhy, wifiMac, nodes);
-}
-
 EnergySourceContainer
 SetupEnergy(NodeContainer& nodes, NetDeviceContainer& devices)
 {
@@ -735,6 +717,34 @@ SetupEnergy(NodeContainer& nodes, NetDeviceContainer& devices)
 void
 SetupMobility(const SimulationOptions& opt, NodeContainer& nodes)
 {
+    if (opt.topology == "static")
+    {
+        // Static: nodes uniformly placed inside a square of side = areaMultiplier * txRange.
+        // ConstantPositionMobilityModel => no motion. Coverage area is the varied parameter.
+        double side = opt.areaMultiplier * opt.txRange;
+        Ptr<UniformRandomVariable> rngX = CreateObject<UniformRandomVariable>();
+        Ptr<UniformRandomVariable> rngY = CreateObject<UniformRandomVariable>();
+        rngX->SetAttribute("Min", DoubleValue(0.0));
+        rngX->SetAttribute("Max", DoubleValue(side));
+        rngY->SetAttribute("Min", DoubleValue(0.0));
+        rngY->SetAttribute("Max", DoubleValue(side));
+
+        MobilityHelper mobility;
+        Ptr<RandomRectanglePositionAllocator> alloc =
+            CreateObject<RandomRectanglePositionAllocator>();
+        alloc->SetX(rngX);
+        alloc->SetY(rngY);
+        mobility.SetPositionAllocator(alloc);
+        mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mobility.Install(nodes);
+
+        cout << "Topology: STATIC, " << opt.nNodes << " nodes uniformly placed in "
+             << side << "x" << side << " m  (areaMultiplier=" << opt.areaMultiplier
+             << ", txRange=" << opt.txRange << " m)\n";
+        return;
+    }
+
+    // MOBILE topology: RandomWaypointMobilityModel inside a grid-sized square.
     double gridWidth = ceil(sqrt((double)opt.nNodes));
     double spacing = 100.0;
     double areaSize = gridWidth * spacing;
@@ -770,7 +780,7 @@ SetupMobility(const SimulationOptions& opt, NodeContainer& nodes)
     Config::SetDefault("ns3::RandomRectanglePositionAllocator::Y", StringValue(boundsY.str()));
     mobility.Install(nodes);
 
-    cout << "Topology: " << (uint32_t)gridWidth << "x" << (uint32_t)gridWidth << " grid, "
+    cout << "Topology: MOBILE, " << (uint32_t)gridWidth << "x" << (uint32_t)gridWidth << " grid, "
          << spacing << " m spacing, area " << areaSize << "x" << areaSize << " m\n";
 }
 
@@ -1089,14 +1099,15 @@ WriteCsv(const SimulationOptions& opt, const string& protocolLabel, const Metric
     ofstream csv(csvPath, ios::app);
     if (writeHeader)
     {
-        csv << "Protocol,Mode,NetworkType,Nodes,Sinks,PPS,PacketSize,Seed,SimTime,"
-               "MinSpeed,MaxSpeed,CcBaseThreshold,"
+        csv << "Protocol,Mode,Network,Topology,AreaMultiplier,Nodes,Sinks,PPS,PacketSize,Seed,"
+               "SimTime,MinSpeed,MaxSpeed,CcBaseThreshold,"
                "TxPackets,RxPackets,LostPackets,PDR(%),PacketLossRate(%),AvgE2EDelay(ms),"
                "Throughput(Kbps),TotalEnergyJ,AvgEnergyPerNodeJ\n";
     }
 
     uint32_t effectivePps = (opt.pps > 0) ? opt.pps : 4;
-    csv << protocolLabel << "," << opt.mode << "," << opt.networkType << "," << opt.nNodes << ","
+    csv << protocolLabel << "," << opt.mode << ",802.11," << opt.topology << ","
+        << fixed << setprecision(2) << opt.areaMultiplier << "," << opt.nNodes << ","
         << opt.nSinks << "," << effectivePps << "," << opt.packetSize << "," << opt.seed << ","
         << fixed << setprecision(2) << opt.simTime << "," << fixed << setprecision(2)
         << opt.minSpeed << "," << fixed << setprecision(2) << opt.maxSpeed << ","
@@ -1127,17 +1138,8 @@ main(int argc, char* argv[])
     nodes.Create(opt.nNodes);
 
     YansWifiPhyHelper wifiPhy;
-    NetDeviceContainer devices;
-    if (opt.networkType == "802.15.4")
-    {
-        devices = SetupLrWpanApprox(nodes, wifiPhy);
-        cout << "Network: 802.15.4 approximation (1 Mbps PHY, Friis+Range≤200m)\n";
-    }
-    else
-    {
-        devices = SetupWifi(nodes, wifiPhy);
-        cout << "Network: 802.11b (11 Mbps PHY, Friis propagation)\n";
-    }
+    NetDeviceContainer devices = SetupWifi(nodes, wifiPhy);
+    cout << "Network: 802.11b (11 Mbps PHY, Friis propagation)\n";
 
     EnergySourceContainer energySources = SetupEnergy(nodes, devices);
 

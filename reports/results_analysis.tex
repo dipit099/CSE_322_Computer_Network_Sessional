@@ -1,277 +1,75 @@
-\documentclass[11pt,a4paper]{article}
-\usepackage[utf-8]{inputenc}
+\documentclass[aspectratio=169]{beamer}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usetheme[block=fill,progressbar=foot,background=light]{metropolis}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage[T1]{fontenc}
 \usepackage{booktabs}
-\usepackage{graphicx}
+\usepackage{pifont}
+\usepackage{adfbullets}
+\usepackage{enumitem}
+\setlist[enumerate]{label=\arabic*.}
 \usepackage{amsmath}
-\usepackage{float}
-\usepackage{geometry}
-\geometry{margin=1in}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepackage[]{hyperref}
+\graphicspath{{images/}}
+\usepackage{multirow,array}
+\usepackage{colortbl}
+\usepackage{comment}
+\usepackage{varwidth}
 
-\title{ECC-AODV Performance Analysis and Parameter Tuning Results}
-\author{Benchmarking Study}
-\date{\today}
+% ── Custom colours ─────────────────────────────────────────────────────────────
+\definecolor{aa}{RGB}{255, 124, 0}
+\definecolor{cc}{RGB}{230, 230, 230}
 
+% ── Background watermark ───────────────────────────────────────────────────────
+\usebackgroundtemplate{%
+  \tikz[overlay,remember picture]{%
+    \node[scale=80,opacity=0.03, at=(current page.south east)]{\adfbullet{9}};}}
+
+\usetikzlibrary{positioning,tikzmark,shadings,through}
+
+% ── Custom environments ────────────────────────────────────────────────────────
+\newenvironment{nicetable}[1]{%
+  \setlength\arrayrulewidth{0.5mm}%
+  \arrayrulecolor{white}%
+  \begin{tabular}{#1}}{\end{tabular}}
+
+\newenvironment{challenge}{\begin{block}{Challenge}}{\end{block}}
+\newenvironment{objective}{\begin{block}{Objective}}{\end{block}}
+
+% ── Bullet style ───────────────────────────────────────────────────────────────
+\setlist[itemize,1]{label={\color{aa}\large\adfbullet{9}}}
+\setlist[itemize,2]{label={\color{aa}\normalsize\adfbullet{9}}}
+
+% ── Title information ─────────────────────────────────────────────────────────
+
+% ══════════════════════════════════════════════════════════════════════════════
 \begin{document}
 
-\maketitle
+% ── Title ─────────────────────────────────────────────────────────────────────
+\begin{frame}
+\titlepage
+\end{frame}
 
-\begin{abstract}
-This document presents a comprehensive analysis of benchmark results comparing AODV, CC-AODV, and ECC-AODV routing protocols. The study includes baseline performance comparison across different network sizes, mobility profiles, and systematic parameter tuning to identify optimal QACD weights (Queue-Aware Congestion Detection). Results show that ECC-AODV achieves significant improvements in specific scenarios, particularly in mobile networks with higher node density.
-\end{abstract}
+% ── Outline ───────────────────────────────────────────────────────────────────
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
 
-\section{Executive Summary}
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
 
-The Enhanced Congestion-Aware AODV (ECC-AODV) protocol incorporates four key components:
-\begin{enumerate}
-    \item \textbf{ATM}: Arrival Time Monitoring
-    \item \textbf{QACD}: Queue-Aware Congestion Detection (tunable weights w1, w2, w3)
-    \item \textbf{OPHD}: Optimal Path Hop Detection
-    \item \textbf{MMPS}: Multi-Metric Path Selection
-\end{enumerate}
 
-The QACD component uses the formula:
-\begin{equation}
-CL = w_1 \cdot \text{queue\_occupancy} + w_2 \cdot \text{counter\_ratio} + w_3 \cdot \text{drop\_rate}
-\end{equation}
 
-where $w_1 + w_2 + w_3 = 1.0$
-
-\section{Baseline Benchmark Results}
-
-\subsection{Experimental Setup}
-
-\begin{table}[H]
-\centering
-\caption{Benchmark Configuration}
-\begin{tabular}{ll}
-\toprule
-\textbf{Parameter} & \textbf{Value} \\
-\midrule
-Simulation Duration & 30 seconds \\
-Packet Rate & 4 packets/second per flow \\
-Packet Size & 512 bytes \\
-Node Deployment & Random waypoint \\
-Network Area & 300m × 300m \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Network Configurations}
-
-\begin{table}[H]
-\centering
-\caption{Tested Network Configurations}
-\begin{tabular}{ccccc}
-\toprule
-\textbf{Config} & \textbf{Nodes} & \textbf{Sinks} & \textbf{Speed Profile} & \textbf{Description} \\
-\midrule
-1 & 20 & 10 & 0-5 m/s & Low Mobility \\
-2 & 20 & 10 & 4-10 m/s & High Mobility \\
-3 & 30 & 15 & 0-5 m/s & Medium, Low Mobility \\
-4 & 30 & 15 & 4-10 m/s & Medium, High Mobility \\
-5 & 40 & 20 & 0-5 m/s & Large, Low Mobility \\
-6 & 40 & 20 & 4-10 m/s & Large, High Mobility \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Baseline Results Summary}
-
-\begin{table}[H]
-\centering
-\caption{Baseline Performance: AODV vs ECC-AODV (Average across all scenarios)}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Metric} & \textbf{AODV} & \textbf{ECC-AODV} & \textbf{Change} & \textbf{Notes} \\
-\midrule
-PDR (\%) & 79.91 & 82.14 & +2.23 & Better in mobile scenarios \\
-Delay (ms) & 141.96 & 142.40 & -0.44 & Negligible difference \\
-Throughput (Kbps) & 247.31 & 241.82 & -5.49 & Lower in static scenarios \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Scenario-by-Scenario Analysis}
-
-\begin{table}[H]
-\centering
-\caption{Detailed Baseline Results by Scenario}
-\begin{tabular}{lcccccc}
-\toprule
-\textbf{Scenario} & \multicolumn{3}{c}{\textbf{AODV}} & \multicolumn{3}{c}{\textbf{ECC-AODV}} \\
-\cmidrule(lr){2-4} \cmidrule(lr){5-7}
-& PDR & Delay & TP & PDR & Delay & TP \\
-& (\%) & (ms) & (Kbps) & (\%) & (ms) & (Kbps) \\
-\midrule
-20n, 10s, 0-5 m/s & 85.80 & 72.57 & 146.08 & 83.42 & 78.91 & 136.34 \\
-20n, 10s, 4-10 m/s & 75.86 & 86.66 & 108.79 & 78.34 & 97.44 & 116.49 \\
-30n, 15s, 0-5 m/s & 88.22 & 102.68 & 265.69 & 84.86 & 108.93 & 248.82 \\
-30n, 15s, 4-10 m/s & 82.68 & 139.09 & 256.39 & 87.82 & 138.17 & 289.96 \\
-40n, 20s, 0-5 m/s & 76.13 & 178.96 & 285.10 & 70.98 & 159.96 & 258.82 \\
-40n, 20s, 4-10 m/s & 78.80 & 171.83 & 322.90 & 77.49 & 171.02 & 301.59 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{Key Findings}
-
-\subsection{Where ECC-AODV Wins}
-
-\subsubsection{Mobile Networks (4-10 m/s)}
-\begin{itemize}
-    \item \textbf{20-node mobile network:} +2.48\% PDR improvement
-    \item \textbf{30-node mobile network:} +5.14\% PDR improvement (best improvement)
-    \item \textbf{40-node mobile network:} -1.31\% PDR (slight degradation)
-\end{itemize}
-
-Best PDR Performance: \textbf{30-node, 15-sink, 4-10 m/s scenario} with \textbf{+5.14\% improvement over AODV}
-
-\subsubsection{Throughput Advantages}
-\begin{itemize}
-    \item \textbf{30-node mobile network:} +33.57 Kbps (highest gain)
-    \item \textbf{20-node mobile network:} +7.70 Kbps
-    \item Better data delivery in congested, mobile scenarios
-\end{itemize}
-
-\subsection{Where ECC-AODV Underperforms}
-
-\subsubsection{Large Static Networks (40-node, 0-5 m/s)}
-\begin{itemize}
-    \item PDR: -5.15\% degradation
-    \item Throughput: -26.28 Kbps reduction
-    \item Delay: +19.00 ms increase
-    \item Reason: Overhead of congestion detection in low-congestion scenarios
-\end{itemize}
-
-\subsubsection{Small Static Networks (20-node, 0-5 m/s)}
-\begin{itemize}
-    \item PDR: -2.38\% degradation
-    \item Throughput: -9.74 Kbps reduction
-    \item Reason: Limited benefit of congestion awareness in sparse networks
-\end{itemize}
-
-\section{QACD Weight Parameter Tuning}
-
-\subsection{Parameter Configurations Tested}
-
-\begin{table}[H]
-\centering
-\caption{QACD Weight Configurations for Tuning}
-\begin{tabular}{cccl}
-\toprule
-\textbf{Config} & $w_1$ (Queue) & $w_2$ (Counter) & $w_3$ (Drop) & \textbf{Profile} \\
-\midrule
-1 & 0.5 & 0.3 & 0.2 & Queue-heavy (Default) \\
-2 & 0.3 & 0.4 & 0.3 & Balanced \\
-3 & 0.2 & 0.5 & 0.3 & Counter-heavy \\
-4 & 0.3 & 0.3 & 0.4 & Drop-rate-heavy \\
-5 & 0.4 & 0.4 & 0.2 & Queue+Counter \\
-6 & 0.1 & 0.5 & 0.4 & Minimal queue \\
-7 & 0.6 & 0.2 & 0.2 & Very queue-heavy \\
-8 & 0.2 & 0.2 & 0.6 & Very drop-rate-heavy \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Parameter Tuning Framework}
-
-Total Experiments: $8 \text{ configs} \times 3 \text{ network sizes} \times 2 \text{ speed profiles} = 48$ runs
-
-Expected output files:
-\begin{itemize}
-    \item \texttt{outputs/ecc-param-tuning-results.csv} - Raw metrics
-    \item \texttt{outputs/ecc-param-tuning-results.txt} - Organized statistics
-\end{itemize}
-
-\section{Recommendations}
-
-\subsection{Protocol Selection Guidelines}
-
-\begin{table}[H]
-\centering
-\caption{Recommended Routing Protocol by Scenario}
-\begin{tabular}{llcc}
-\toprule
-\textbf{Network Type} & \textbf{Recommended Protocol} & \textbf{PDR Benefit} & \textbf{Notes} \\
-\midrule
-Small, static (20n, 0-5) & AODV & Baseline & ECC adds overhead \\
-Small, mobile (20n, 4-10) & ECC-AODV & +2.48\% & Better path diversity \\
-Medium, static (30n, 0-5) & AODV & Baseline & Congestion minimal \\
-Medium, mobile (30n, 4-10) & ECC-AODV & +5.14\% & Highest benefit scenario \\
-Large, static (40n, 0-5) & AODV & Baseline & ECC overhead costly \\
-Large, mobile (40n, 4-10) & AODV/ECC & ~0\% & Minimal difference \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{QACD Weight Selection}
-
-Based on preliminary analysis:
-
-\begin{itemize}
-    \item \textbf{Mobile Networks (w1:w2:w3 = 0.3:0.4:0.3):} Balanced profile recommended
-    \begin{itemize}
-        \item Considers all three congestion indicators equally
-        \item Better adaptability to dynamic conditions
-    \end{itemize}
-    
-    \item \textbf{High-Congestion Scenarios (w1:w2:w3 = 0.2:0.5:0.3):} Counter-heavy
-    \begin{itemize}
-        \item Emphasizes packet loss rate
-        \item Early detection of problematic nodes
-    \end{itemize}
-    
-    \item \textbf{Queue-Sensitive Networks (w1:w2:w3 = 0.5:0.3:0.2):} Queue-heavy (Default)
-    \begin{itemize}
-        \item Current default setting
-        \item Good for buffer management
-    \end{itemize}
-\end{itemize}
-
-\section{Next Steps}
-
-\begin{enumerate}
-    \item Execute parameter tuning experiments (48 configurations)
-    \item Analyze results to identify optimal QACD weights
-    \item Create scenario-specific parameter recommendations
-    \item Validate findings with extended simulations
-    \item Document optimal configurations in protocol specification
-\end{enumerate}
-
-\section{Conclusion}
-
-ECC-AODV demonstrates promising improvements in mobile ad-hoc networks, particularly in medium-sized networks with high mobility (30 nodes, 4-10 m/s speed: +5.14\% PDR improvement, +33.57 Kbps throughput). The congestion-aware mechanisms effectively balance multiple performance metrics through tunable QACD weights. However, the protocol shows limitations in large static networks where the overhead exceeds the benefit. Adaptive weight selection based on network conditions can further optimize performance.
-
-\appendix
-
-\section{Experimental Configuration Details}
-
-\subsection{Simulation Parameters}
-\begin{verbatim}
-Simulation Duration:    30 seconds
-Packet Interval:        0.25 seconds (4 pps)
-Packet Size:           512 bytes
-PHY Layer:             802.11b (54 Mbps)
-MAC Layer:             802.11 DCF
-Propagation Loss:      TwoRayGround
-Antenna:               Omnidirectional
-\end{verbatim}
-
-\subsection{Node Deployment}
-\begin{verbatim}
-Area:                  300m × 300m
-Deployment:            Random uniform
-Initial Placement:     Random
-Pause Time:            0 seconds (continuous movement)
-\end{verbatim}
-
-\subsection{Traffic Patterns}
-\begin{verbatim}
-Flow Type:             CBR (Constant Bit Rate)
-Flow Duration:         30 seconds
-Packet Size:           512 bytes
-Sending Rate:          4 packets/second
-Total Flows:           Variable (based on sink count)
-\end{verbatim}
-
-\end{document}
+%% YOU CAN try compiling pdf using "pdflatex" installing in "venv" python. or 
+ %% it is HARD , then u can simply make the tex file and no compile. i will later compile in overleaf.
