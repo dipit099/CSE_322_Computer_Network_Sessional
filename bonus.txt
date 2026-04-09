@@ -1,7 +1,9 @@
 Bonus Opportunities
 You can earn bonus points in several areas:
 
-
+Cross transmission of packets, i.e., transmission of packets from one type of node to that 
+of another type (example: simulating a flow n1->n2->…->nx, where the first few nodes 
+are wired and the rest nodes are wireless)
 
 Measuring extra metrics: Examples include per-node throughput or the variation in queue size over time.
 { If possible. DOnt try too much changes to adapt these}

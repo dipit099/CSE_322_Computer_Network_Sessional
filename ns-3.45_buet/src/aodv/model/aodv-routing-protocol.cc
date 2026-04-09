@@ -169,6 +169,7 @@ RoutingProtocol::RoutingProtocol()
       m_rreqRateLimitTimer(Timer::CANCEL_ON_DESTROY),
       m_rerrRateLimitTimer(Timer::CANCEL_ON_DESTROY),
       m_lastBcastTime(),
+
       // CHANGE::
       m_congestionCounter(0),
       m_baseThreshold(4),
@@ -359,12 +360,12 @@ RoutingProtocol::GetTypeId()
                           MakeBooleanChecker())
             .AddAttribute("QACDWeightQueue",
                           "QACD w1: weight for queue-occupancy term.",
-                          DoubleValue(0.5),
+                          DoubleValue(0.6),
                           MakeDoubleAccessor(&RoutingProtocol::m_w1),
                           MakeDoubleChecker<double>(0.0, 1.0))
             .AddAttribute("QACDWeightCounter",
                           "QACD w2: weight for counter-ratio term.",
-                          DoubleValue(0.3),
+                          DoubleValue(0.2),
                           MakeDoubleAccessor(&RoutingProtocol::m_w2),
                           MakeDoubleChecker<double>(0.0, 1.0))
             .AddAttribute("QACDWeightDropRate",
@@ -403,7 +404,7 @@ RoutingProtocol::calculateAdaptiveThreshold() const
 
     return std::max(1u, static_cast<uint32_t>(threshold));
 }
-
+// CHANGE
 bool
 RoutingProtocol::isNodeCongested() const
 {
@@ -415,7 +416,7 @@ RoutingProtocol::isNodeCongested() const
 
     return m_congestionCounter > m_baseThreshold;
 }
-
+// change
 double
 RoutingProtocol::calculateCongestionLevel() const
 {
@@ -433,18 +434,19 @@ RoutingProtocol::calculateCongestionLevel() const
 
     // w3: actual data packet drop rate (not RREQ drop rate — fixes the circular-feedback bug)
     double totalData = static_cast<double>(m_dataDrops + m_dataForwards);
-    double dropRate =
-        (totalData > 0.0) ? (static_cast<double>(m_dataDrops) / totalData) : 0.0;
+    double dropRate = (totalData > 0.0) ? (static_cast<double>(m_dataDrops) / totalData) : 0.0;
 
     return m_w1 * qRatio + m_w2 * cRatio + m_w3 * dropRate;
 }
 
+// CHANGE
+
 double
 RoutingProtocol::computeRrepScore(const RrepHeader& rrep) const
 {
-    constexpr double alpha = 0.3;
-    constexpr double beta = 0.4;
-    constexpr double gamma = 0.3;
+    constexpr double alpha = 0.6;
+    constexpr double beta = 0.2;
+    constexpr double gamma = 0.2;
 
     uint32_t hops = std::max(static_cast<uint32_t>(1), static_cast<uint32_t>(rrep.GetHopCount()));
     double hopScore = alpha / static_cast<double>(hops);
@@ -1699,11 +1701,7 @@ void
 RoutingProtocol::SendReply(const RreqHeader& rreqHeader, const RoutingTableEntry& toOrigin)
 {
     NS_LOG_FUNCTION(this << toOrigin.GetDestination());
-    /*
-     * Destination node MUST increment its own sequence number by one if the sequence number in the
-     * RREQ packet is equal to that incremented value. Otherwise, the destination does not change
-     * its sequence number before generating the  RREP message.
-     */
+
     if (!rreqHeader.GetUnknownSeqno() && (rreqHeader.GetDstSeqno() == m_seqNo + 1))
     {
         m_seqNo++;
@@ -1737,14 +1735,14 @@ RoutingProtocol::SendReply(const RreqHeader& rreqHeader, const RoutingTableEntry
         {
             clLevel = 1;
         }
-        rrepHeader.SetCongestionLevel(clLevel);
+        rrepHeader.SetCongestionLevel(clLevel); //set korlam
 
         double qOccupancy = (m_maxQueueLen > 0) ? static_cast<double>(m_queue.GetSize()) /
                                                       static_cast<double>(m_maxQueueLen)
                                                 : 0.0;
         uint8_t hopQuality =
             static_cast<uint8_t>(std::max(0.0, std::min(15.0, (1.0 - qOccupancy) * 15.0)));
-        rrepHeader.SetHopQuality(hopQuality);
+        rrepHeader.SetHopQuality(hopQuality);  // set korlam
     }
 
     Ptr<Packet> packet = Create<Packet>();

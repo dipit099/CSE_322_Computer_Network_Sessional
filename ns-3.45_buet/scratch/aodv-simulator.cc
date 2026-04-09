@@ -57,13 +57,23 @@ struct SimulationOptions
     double w2 = 0.3;
     double w3 = 0.2;
     // Traffic parameters
-    uint32_t pps = 0;           // packets per second (0 = use default 4 pps)
-    uint32_t packetSize = 512;  // bytes per packet
+    uint32_t pps = 0;          // packets per second (0 = use default 4 pps)
+    uint32_t packetSize = 512; // bytes per packet
     // Topology: "mobile" => RandomWaypoint, "static" => fixed grid
     string topology = "mobile";
     // For static topology: side length = areaMultiplier * txRange (txRange ~250m at 802.11b/Friis)
     double areaMultiplier = 1.0;
-    double txRange = 250.0;  // meters (802.11b reference Tx range)
+    double txRange = 250.0; // meters (802.11b reference Tx range)
+
+    // ---- BONUS B: per-node throughput CSV ----
+    // When true, writes <outputDir>/<output>-per-node-tput.csv at end of sim.
+    bool perNodeThroughput = false;
+
+    // ---- BONUS C: queue-size-over-time CSV ----
+    // When true, polls AODV route-buffer size every queuePollInterval seconds
+    // and writes <outputDir>/<output>-queue-size.csv
+    bool queueSizeTrace = false;
+    double queuePollInterval = 1.0; // seconds between queue-size samples
 };
 
 struct Metrics
@@ -77,8 +87,8 @@ struct Metrics
     double lossRate = 0.0;
     double avgDelayMs = 0.0;
     double throughputKbps = 0.0;
-    double totalEnergyJ = 0.0;       // Total energy consumed (Joules) across all nodes
-    double avgEnergyPerNodeJ = 0.0;  // Average energy per node (Joules)
+    double totalEnergyJ = 0.0;      // Total energy consumed (Joules) across all nodes
+    double avgEnergyPerNodeJ = 0.0; // Average energy per node (Joules)
 };
 
 struct RouteEntry
@@ -102,6 +112,16 @@ struct SimTraceContext
 static uint64_t g_ipv4DropCount = 0;
 static uint64_t g_rreqCount = 0;
 static uint64_t g_rrepCount = 0;
+
+// ---- BONUS C: queue-size-over-time storage ----
+// Each sample: (simTime, nodeId, queueSize)
+struct QueueSample
+{
+    double time;
+    uint32_t nodeId;
+    uint32_t queueSize;
+};
+static vector<QueueSample> g_queueSamples;
 static map<uint32_t, map<string, RouteEntry>> g_lastRouteTable;
 static Ipv4Address g_flowTraceSrc;
 static Ipv4Address g_flowTraceDst;
@@ -526,6 +546,17 @@ ParseArgs(int argc, char* argv[])
                  "Static topology: side length = areaMultiplier * txRange",
                  opt.areaMultiplier);
     cmd.AddValue("txRange", "Reference Tx range in meters (for static area sizing)", opt.txRange);
+    // ---- BONUS B: per-node throughput CSV ----
+    cmd.AddValue("perNodeThroughput",
+                 "Write per-node throughput CSV (bonus metric)",
+                 opt.perNodeThroughput);
+    // ---- BONUS C: queue-size-over-time CSV ----
+    cmd.AddValue("queueSizeTrace",
+                 "Write queue-size-over-time CSV (bonus metric)",
+                 opt.queueSizeTrace);
+    cmd.AddValue("queuePollInterval",
+                 "Seconds between queue-size samples (used with queueSizeTrace)",
+                 opt.queuePollInterval);
     cmd.AddValue("flowSrcNode",
                  "Source node for route discovery filter (-1 disables filter)",
                  opt.flowSrcNode);
@@ -619,9 +650,8 @@ PrintConfig(const SimulationOptions& opt,
     cout << "Protocol:  " << protocolLabel << "\n";
     cout << "Mode:      " << opt.mode << "\n";
     cout << "Topology:  " << opt.topology
-         << (opt.topology == "static"
-                 ? string(" (areaMul=") + to_string(opt.areaMultiplier) + ")"
-                 : string(""))
+         << (opt.topology == "static" ? string(" (areaMul=") + to_string(opt.areaMultiplier) + ")"
+                                      : string(""))
          << "\n";
     cout << "Nodes:     " << opt.nNodes << "\n";
     cout << "SimTime:   " << opt.simTime << " s\n";
@@ -738,9 +768,9 @@ SetupMobility(const SimulationOptions& opt, NodeContainer& nodes)
         mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         mobility.Install(nodes);
 
-        cout << "Topology: STATIC, " << opt.nNodes << " nodes uniformly placed in "
-             << side << "x" << side << " m  (areaMultiplier=" << opt.areaMultiplier
-             << ", txRange=" << opt.txRange << " m)\n";
+        cout << "Topology: STATIC, " << opt.nNodes << " nodes uniformly placed in " << side << "x"
+             << side << " m  (areaMultiplier=" << opt.areaMultiplier << ", txRange=" << opt.txRange
+             << " m)\n";
         return;
     }
 
@@ -1088,6 +1118,133 @@ PrintTraceSummary(const SimTraceContext& ctx)
     }
 }
 
+// ============================================================
+// BONUS C: PollQueueSizes
+// Reads the AODV route-request queue size on every node and
+// stores a (time, nodeId, size) sample. Called on a repeating
+// schedule while the sim runs.
+// ============================================================
+void
+PollQueueSizes(vector<Ptr<Node>> nodeList, Time interval, Time stopTime)
+{
+    double now = Simulator::Now().GetSeconds();
+
+    for (uint32_t i = 0; i < nodeList.size(); i++)
+    {
+        // Get AODV routing protocol installed on this node
+        Ptr<Ipv4> ipv4 = nodeList[i]->GetObject<Ipv4>();
+        if (!ipv4)
+            continue;
+
+        Ptr<Ipv4RoutingProtocol> proto = ipv4->GetRoutingProtocol();
+        if (!proto)
+            continue;
+
+        // AODV may be wrapped in a list-routing — unwrap it
+        Ptr<aodv::RoutingProtocol> aodvProto = DynamicCast<aodv::RoutingProtocol>(proto);
+        if (!aodvProto)
+        {
+            Ptr<Ipv4ListRouting> list = DynamicCast<Ipv4ListRouting>(proto);
+            if (list)
+            {
+                for (uint32_t j = 0; j < list->GetNRoutingProtocols(); j++)
+                {
+                    int16_t pri;
+                    Ptr<Ipv4RoutingProtocol> rp = list->GetRoutingProtocol(j, pri);
+                    aodvProto = DynamicCast<aodv::RoutingProtocol>(rp);
+                    if (aodvProto)
+                        break;
+                }
+            }
+        }
+
+        if (aodvProto)
+        {
+            // GetQueueSize() returns number of packets buffered waiting for routes
+            uint32_t qs = aodvProto->GetQueueSize();
+            g_queueSamples.push_back({now, i, qs});
+        }
+    }
+
+    // Reschedule until sim end
+    if (Simulator::Now() + interval <= stopTime)
+    {
+        Simulator::Schedule(interval, &PollQueueSizes, nodeList, interval, stopTime);
+    }
+}
+
+// ============================================================
+// BONUS C: WriteQueueSizeCsv
+// Writes all collected queue-size samples to a CSV file.
+// ============================================================
+void
+WriteQueueSizeCsv(const SimulationOptions& opt)
+{
+    if (g_queueSamples.empty())
+        return;
+
+    string path = opt.outputDir + "/" + opt.output + "-queue-size.csv";
+    ofstream f(path);
+    // Header
+    f << "Time(s),NodeId,QueueSize(packets)\n";
+    for (const auto& s : g_queueSamples)
+    {
+        f << fixed << setprecision(2) << s.time << "," << s.nodeId << "," << s.queueSize << "\n";
+    }
+    f.close();
+    cout << "Queue-size log written to: " << path << "\n";
+}
+
+// ============================================================
+// BONUS B: WritePerNodeThroughputCsv
+// Aggregates FlowMonitor data by destination node (receiver)
+// and writes one row per node: nodeId, rxBytes, throughputKbps.
+// ============================================================
+void
+WritePerNodeThroughputCsv(const SimulationOptions& opt,
+                          FlowMonitorHelper& flowmonHelper,
+                          Ptr<FlowMonitor> flowmon,
+                          const Ipv4InterfaceContainer& interfaces)
+{
+    Ptr<Ipv4FlowClassifier> classifier =
+        DynamicCast<Ipv4FlowClassifier>(flowmonHelper.GetClassifier());
+    FlowMonitor::FlowStatsContainer stats = flowmon->GetFlowStats();
+
+    // Map: nodeId -> (rxBytes, rxPackets)
+    map<uint32_t, uint64_t> rxBytesPerNode;
+    map<uint32_t, uint64_t> rxPktsPerNode;
+
+    for (auto iter = stats.begin(); iter != stats.end(); ++iter)
+    {
+        Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(iter->first);
+
+        // Match destination IP to a node index
+        for (uint32_t i = 0; i < interfaces.GetN(); i++)
+        {
+            if (interfaces.GetAddress(i) == t.destinationAddress)
+            {
+                rxBytesPerNode[i] += iter->second.rxBytes;
+                rxPktsPerNode[i] += iter->second.rxPackets;
+                break;
+            }
+        }
+    }
+
+    string path = opt.outputDir + "/" + opt.output + "-per-node-tput.csv";
+    ofstream f(path);
+    // Header
+    f << "NodeId,RxPackets,RxBytes,ThroughputKbps\n";
+    for (uint32_t i = 0; i < interfaces.GetN(); i++)
+    {
+        uint64_t bytes = rxBytesPerNode.count(i) ? rxBytesPerNode[i] : 0;
+        uint64_t pkts  = rxPktsPerNode.count(i)  ? rxPktsPerNode[i]  : 0;
+        double tput    = (bytes * 8.0) / opt.simTime / 1000.0;
+        f << i << "," << pkts << "," << bytes << "," << fixed << setprecision(2) << tput << "\n";
+    }
+    f.close();
+    cout << "Per-node throughput written to: " << path << "\n";
+}
+
 void
 WriteCsv(const SimulationOptions& opt, const string& protocolLabel, const Metrics& m)
 {
@@ -1106,16 +1263,16 @@ WriteCsv(const SimulationOptions& opt, const string& protocolLabel, const Metric
     }
 
     uint32_t effectivePps = (opt.pps > 0) ? opt.pps : 4;
-    csv << protocolLabel << "," << opt.mode << ",802.11," << opt.topology << ","
-        << fixed << setprecision(2) << opt.areaMultiplier << "," << opt.nNodes << ","
-        << opt.nSinks << "," << effectivePps << "," << opt.packetSize << "," << opt.seed << ","
-        << fixed << setprecision(2) << opt.simTime << "," << fixed << setprecision(2)
-        << opt.minSpeed << "," << fixed << setprecision(2) << opt.maxSpeed << ","
-        << opt.ccBaseThreshold << "," << m.totalTx << "," << m.totalRx << "," << m.totalLost << ","
-        << fixed << setprecision(2) << m.pdr << "," << fixed << setprecision(2) << m.lossRate
-        << "," << fixed << setprecision(4) << m.avgDelayMs << "," << fixed << setprecision(2)
-        << m.throughputKbps << "," << fixed << setprecision(4) << m.totalEnergyJ << "," << fixed
-        << setprecision(4) << m.avgEnergyPerNodeJ << "\n";
+    csv << protocolLabel << "," << opt.mode << ",802.11," << opt.topology << "," << fixed
+        << setprecision(2) << opt.areaMultiplier << "," << opt.nNodes << "," << opt.nSinks << ","
+        << effectivePps << "," << opt.packetSize << "," << opt.seed << "," << fixed
+        << setprecision(2) << opt.simTime << "," << fixed << setprecision(2) << opt.minSpeed << ","
+        << fixed << setprecision(2) << opt.maxSpeed << "," << opt.ccBaseThreshold << ","
+        << m.totalTx << "," << m.totalRx << "," << m.totalLost << "," << fixed << setprecision(2)
+        << m.pdr << "," << fixed << setprecision(2) << m.lossRate << "," << fixed << setprecision(4)
+        << m.avgDelayMs << "," << fixed << setprecision(2) << m.throughputKbps << "," << fixed
+        << setprecision(4) << m.totalEnergyJ << "," << fixed << setprecision(4)
+        << m.avgEnergyPerNodeJ << "\n";
 
     csv.close();
     cout << "\nResults appended to: " << csvPath << "\n";
@@ -1155,6 +1312,22 @@ main(int argc, char* argv[])
     InstallTraffic(opt, nodes, interfaces);
     SimTraceContext traceContext = SetupTracing(opt, asciiNodeIds, nodes, wifiPhy, devices);
 
+    // ---- BONUS C: schedule queue-size polling ----
+    if (opt.queueSizeTrace)
+    {
+        g_queueSamples.clear();
+        // Build a plain vector of node pointers to pass to the callback
+        vector<Ptr<Node>> nodeList;
+        for (uint32_t i = 0; i < opt.nNodes; i++)
+            nodeList.push_back(nodes.Get(i));
+
+        Time pollInterval = Seconds(opt.queuePollInterval);
+        Time stopTime = Seconds(opt.simTime);
+        // First sample at t=1s (after traffic starts)
+        Simulator::Schedule(Seconds(1.0), &PollQueueSizes, nodeList, pollInterval, stopTime);
+        cout << "Queue-size polling enabled every " << opt.queuePollInterval << " s\n";
+    }
+
     FlowMonitorHelper flowmonHelper;
     Ptr<FlowMonitor> flowmon = flowmonHelper.InstallAll();
 
@@ -1166,6 +1339,18 @@ main(int argc, char* argv[])
     PrintMetrics(protocolLabel, opt.nNodes, metrics);
     PrintTraceSummary(traceContext);
     WriteCsv(opt, protocolLabel, metrics);
+
+    // ---- BONUS B: write per-node throughput CSV ----
+    if (opt.perNodeThroughput)
+    {
+        WritePerNodeThroughputCsv(opt, flowmonHelper, flowmon, interfaces);
+    }
+
+    // ---- BONUS C: write queue-size-over-time CSV ----
+    if (opt.queueSizeTrace)
+    {
+        WriteQueueSizeCsv(opt);
+    }
 
     Simulator::Destroy();
     return 0;

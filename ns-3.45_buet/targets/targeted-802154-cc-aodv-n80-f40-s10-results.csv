@@ -1,2 +1,0 @@
-Protocol,Mode,NetworkType,Nodes,Sinks,PPS,PacketSize,Seed,SimTime,MinSpeed,MaxSpeed,CcBaseThreshold,TxPackets,RxPackets,LostPackets,PDR(%),PacketLossRate(%),AvgE2EDelay(ms),Throughput(Kbps),TotalEnergyJ,AvgEnergyPerNodeJ
-CC-AODV,cc-aodv,802.15.4,80,40,100,512,1,20.00,10.00,10.00,4,85818,10778,75040,12.56,87.44,288.5350,1004.06,2093.7042,26.1713

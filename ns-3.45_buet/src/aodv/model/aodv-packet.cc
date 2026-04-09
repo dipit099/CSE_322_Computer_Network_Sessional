@@ -161,6 +161,7 @@ RreqHeader::GetInstanceTypeId() const
     return GetTypeId();
 }
 
+
 uint32_t
 RreqHeader::GetSerializedSize() const
 {
@@ -321,6 +322,7 @@ RrepHeader::GetInstanceTypeId() const
     return GetTypeId();
 }
 
+// change
 uint32_t
 RrepHeader::GetSerializedSize() const
 {
@@ -337,6 +339,8 @@ RrepHeader::Serialize(Buffer::Iterator i) const
     i.WriteHtonU32(m_dstSeqNo);
     WriteTo(i, m_origin);
     i.WriteHtonU32(m_lifeTime);
+
+    // change
     i.WriteU8(m_congestionFlag);
     i.WriteU8(m_eccInfo);
 }
@@ -353,6 +357,8 @@ RrepHeader::Deserialize(Buffer::Iterator start)
     m_dstSeqNo = i.ReadNtohU32();
     ReadFrom(i, m_origin);
     m_lifeTime = i.ReadNtohU32();
+
+    // change
     m_congestionFlag = i.ReadU8();
     m_eccInfo = i.ReadU8();
 

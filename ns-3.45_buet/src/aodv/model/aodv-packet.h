@@ -535,6 +535,8 @@ class RrepHeader : public Header
     uint32_t m_dstSeqNo;  ///< Destination Sequence Number
     Ipv4Address m_origin; ///< Source IP Address
     uint32_t m_lifeTime;  ///< Lifetime (in milliseconds)
+
+    
     // CHANGE: 1 byte congestion flag size use kortasi ..actually as per paper it was 32bits
     uint8_t m_congestionFlag;
     // used 1 byte only to pass some useful info for ECC-AODV, 2 bits for congestion level and 4

@@ -192,6 +192,17 @@ class RoutingProtocol : public Ipv4RoutingProtocol
      */
     int64_t AssignStreams(int64_t stream);
 
+    /**
+     * ECC-AODV BONUS C: Get current number of packets buffered in the
+     * route-request queue (waiting for a route to be discovered).
+     * Used for queue-size-over-time logging in the simulator.
+     * @returns number of queued packets
+     */
+    uint32_t GetQueueSize() const
+    {
+        return m_queue.GetSize();
+    }
+
   protected:
     void DoInitialize() override;
 
@@ -286,10 +297,6 @@ class RoutingProtocol : public Ipv4RoutingProtocol
     bool m_enableCcAodv;
     bool m_enableEccAodv;
     uint32_t m_avgNeighborCounter;
-
-    bool isNodeCongested() const;
-    uint32_t calculateAdaptiveThreshold() const;
-
     double m_w1;
     double m_w2;
     double m_w3;
@@ -298,11 +305,12 @@ class RoutingProtocol : public Ipv4RoutingProtocol
     uint32_t m_dataDrops;     // Data packets dropped (no route or invalid)
     uint32_t m_dataForwards;  // Data packets successfully forwarded
     double m_congestionLevel;
+    bool isNodeCongested() const;
+    uint32_t calculateAdaptiveThreshold() const;
     double calculateCongestionLevel() const;
     std::map<Ipv4Address, RrepHeader> m_bestRrep;
     std::map<Ipv4Address, double> m_bestRrepScore;  
-    // stores score of best RREP for each destination
-    double computeRrepScore(const RrepHeader& rrep) const;
+    double computeRrepScore(const RrepHeader& rrep) const;     // stores score of best RREP for each destination
 
   private:
     /// Start protocol operation

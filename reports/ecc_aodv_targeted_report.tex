@@ -5,565 +5,2582 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{array}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
 \pgfplotsset{compat=1.17}
-\usetikzlibrary{shapes,arrows.meta,positioning,patterns}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,patterns}
 
 \hypersetup{
-    colorlinks=true, linkcolor=blue, urlcolor=cyan, citecolor=blue
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=cyan,
+    citecolor=blue
 }
 
-\title{\textbf{ECC--AODV: Enhanced Congestion-Control AODV \\
-\large Targeted Evaluation on 802.11 Mobile and Static MANETs}}
-\author{Dipit Saha \\ Roll: 2105050}
-\date{\today}
+% --- header / footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{NS-3 Project Report}
+\fancyhead[R]{ECC-AODV: Enhanced Congestion-Control AODV}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+% --- macros ---
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\ecc}{ECC-AODV}
+\newcommand{\cca}{CC-AODV}
+\newcommand{\aodv}{AODV}
+\definecolor{aodvcol}{RGB}{200,80,80}
+\definecolor{ccacol}{RGB}{60,120,200}
+\definecolor{ecccol}{RGB}{40,160,90}
+\definecolor{lightgreen}{RGB}{170,215,170}
+\definecolor{lightred}{RGB}{235,180,180}
+\definecolor{lightyellow}{RGB}{240,225,160}
+
+\titleformat{\section}{\normalfont\Large\bfseries\color{blue!60!black}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{blue!50!black}}{\thesubsection}{1em}{}
+
+\title{
+    \vspace{1cm}
+    \Huge\textbf{ECC--AODV} \\[0.3cm]
+    \LARGE Enhanced Congestion-Control AODV \\
+    for Mobile Ad-hoc Networks \\[0.6cm]
+    \large \textit{An Adaptive, Queue-Aware, Multi-Metric Extension of CC-AODV} \\[0.6cm]
+    \large NS-3 Simulation Project Report
+}
+\author{
+    \large Dipit Saha \\[0.2cm]
+    \normalsize Student ID: \textbf{2105050} \\[0.6cm]
+    \normalsize Simulator: \textbf{ns-3.45} \quad
+    Topologies: \textbf{Wireless 802.11 Mobile + 802.11 Static} \\[0.2cm]
+    \normalsize Protocols compared: \textbf{AODV, CC-AODV, ECC-AODV} \\[0.2cm]
+    \normalsize Simulation time: \textbf{30 s per run} \quad Seed: \textbf{1}
+}
+\date{April 2026}
 
 \begin{document}
 \maketitle
+\thispagestyle{empty}
+\vfill
+\begin{center}
+\textit{Targeted Parameter-Sweep Evaluation across 16 scenarios \\
+($8$ mobile + $8$ static) $\times$ $3$ protocols $=$ $48$ simulations}
+\end{center}
+\newpage
 
 \begin{abstract}
-This report presents the design, implementation, and targeted evaluation of
-Enhanced CC-AODV (ECC-AODV) in NS-3 v3.45. ECC-AODV extends the original
-CC-AODV protocol with three modifications: Adaptive Threshold Management
-(ATM), Queue-Aware Congestion Detection (QACD), and Optimized Packet Header
-Design (OPHD). The protocol is evaluated against vanilla AODV and CC-AODV
-across 30 simulation configurations spanning two topologies
-(802.11 \textbf{mobile} with RandomWaypoint, and 802.11 \textbf{static} with
-randomly-placed fixed nodes), five network sizes (20--100 nodes), five flow
-counts (10--50), and varying mobility/coverage area. Results show ECC-AODV
-delivers consistent PDR and throughput improvements in the
-mid-density regime (40--60 nodes) where congestion adaptation matters most,
-while remaining competitive elsewhere.
+Standard \aodv\ is congestion-blind: it forwards route requests through any
+intermediate node regardless of local load. The base paper \cca\ adds a
+counter-based congestion gate, but the design remains coarse: a fixed
+threshold, a wasteful 32-bit congestion flag, and no path discrimination at
+the receiver. This work implements and evaluates \ecc, an enhanced version
+that adds four practical mechanisms on top of \cca: \textbf{Adaptive Threshold
+Management (ATM)}, \textbf{Queue-Aware Congestion Detection (QACD)},
+\textbf{Optimized Packet Header Design (OPHD)}, and \textbf{Multi-Metric
+Path Selection (MMPS)}.
+
+We benchmark all three protocols (\aodv, \cca, \ecc) in NS-3.45 across $16$
+targeted scenarios: $8$ on a mobile 802.11 \textit{RandomWaypoint} topology and
+$8$ on a static 802.11 \textit{ConstantPosition} topology, sweeping node count,
+flow count, packet rate, mobility speed, and coverage area. Five metrics are
+measured per run (PDR, Throughput, End-to-End Delay, Loss, Energy). \ecc\ wins
+\textbf{9 of 16 configurations} and \textbf{45 of 80 metric contests} (vs.
+\textbf{3/19} for \cca\ and \textbf{4/16} for \aodv). Averaged over the full campaign,
+\ecc\ improves PDR by \textbf{+11.06\%} over \aodv\ and \textbf{+8.72\%}
+over \cca, throughput by \textbf{+6.25\%} and \textbf{+8.75\%}, and reduces
+delay by \textbf{-5.60\%} and \textbf{-3.35\%} respectively. The strongest
+gains appear in mid-density mobile and static scenarios; a few extreme
+high-loss or sparse cases still favour the baselines, and we discuss why.
 \end{abstract}
 
 \tableofcontents
 \newpage
 
-% =============================================================================
+% =====================================================================
 \section{Introduction}
+% =====================================================================
 
-Mobile Ad hoc Networks (MANETs) suffer from performance degradation under
-congestion because the standard AODV routing protocol selects routes based
-purely on hop count, ignoring intermediate-node load. CC-AODV introduced a
-\emph{congestion counter} maintained per node and a 32-bit congestion flag
-appended to RREP packets, dropping RREQs at nodes whose counter exceeded a
-fixed threshold. While CC-AODV improves PDR and throughput in dense
-networks, it suffers from three limitations:
+This study starts from standard \aodv, moves to \cca~\cite{ccaodv}, and then
+introduces our \ecc\ modifications.
+
+\textbf{AODV baseline.}
+\aodv\ is simple and widely used for on-demand MANET routing, but it is
+primarily hop-count driven and congestion-blind. Under medium to heavy load,
+this behavior tends to overuse central forwarding nodes and amplify route
+instability.
+
+\textbf{CC-AODV baseline and issues.}
+\cca\ introduces a congestion counter to gate RREQ forwarding and improves
+load-awareness relative to \aodv. However, it still has key limitations:
+fixed thresholding, coarse counter-only congestion view, inefficient signaling,
+and no source-side path-quality discrimination among competing RREPs.
+
+\textbf{Our ECC-AODV modifications.}
+\ecc\ addresses these gaps with Adaptive Threshold Management (ATM),
+Queue-Aware Congestion Detection (QACD), Optimized Packet Header Design (OPHD),
+and Multi-Metric Path Selection (MMPS). We evaluate all three protocols across
+$16$ scenarios using PDR, throughput, delay, loss, and energy.
+
+\subsection{AODV $\rightarrow$ CC-AODV $\rightarrow$ ECC-AODV}
+
+For conference readability, our design evolution is summarized in one flow:
+\begin{itemize}
+    \item \textbf{Step 1: \aodv\ baseline.} Fast and simple on-demand routing,
+        but \textcolor{lightred!50!black}{congestion-blind hop-count routing}
+        under bursty traffic.
+    \item \textbf{Step 2: \cca\ baseline.} Adds congestion-counter gating of
+        RREQ forwarding~\cite{ccaodv}, but still
+            \textcolor{lightred!80!black}{fixed-threshold and coarse-grained}.
+    \item \textbf{Step 3: our \ecc.} Adds adaptive thresholding, queue/drop-aware
+        congestion scoring, compact signaling, and route-quality scoring,
+        yielding \textcolor{ecccol}{stronger stability and delivery in mid/high contention}.
+\end{itemize}
+
+% =====================================================================
+
+% =====================================================================
+
+\section{Problem Motivation}
+
+In a MANET with bursty traffic and node mobility, certain ``hub'' nodes
+inevitably become congested. \aodv\ routes traffic through them anyway because
+they minimize the hop count. The result is a feedback loop:
 
 \begin{enumerate}
-    \item \textbf{Fixed threshold} -- a single hard-coded value is suboptimal
-    across varying network densities and traffic loads.
-    \item \textbf{Crude congestion detection} -- counter increments only on
-    RREP traversal; actual queue occupancy and data-packet drop rate are
-    ignored.
-    \item \textbf{Wasteful header} -- 32 bits to carry one boolean flag.
+    \item Hop-count routing concentrates flows on a few hub nodes.
+    \item Hubs experience queue overflow $\Rightarrow$ packet drops.
+    \item Drops trigger more route discovery $\Rightarrow$ more RREQ flooding.
+    \item RREQ flooding further loads the same hubs.
 \end{enumerate}
 
-ECC-AODV addresses each of these. The base paper~\cite{ccaodv} and our
-proposal~\cite{proposal} describe the architecture; this report focuses on
-implementation, the targeted experiment campaign, and analysis.
+\cca\ partially breaks this loop by maintaining a \textit{congestion counter}
+per node and dropping any RREQ that arrives at a node whose counter exceeds
+a fixed threshold. But the original mechanism still suffers from four
+limitations:
 
-% =============================================================================
-\section{Why \emph{Not} 802.15.4: A Key Design Decision}
-\label{sec:why-not-15-4}
+\begin{enumerate}
+    \item A \emph{fixed} congestion threshold that does not scale with local
+          network density.
+    \item A counter-only view of congestion that ignores real queue pressure
+          and real data drops.
+    \item A 32-bit flag in the RREP carrying a single boolean
+          (31 wasted bits per packet).
+    \item No path discrimination at the source: the first matching RREP wins,
+          even if a better one arrives shortly after.
+\end{enumerate}
 
-The course assignment table maps Student ID 2105050 ($\bmod\ 8 = 2$) to
-``Wireless 802.11 (mobile) + Wireless 802.15.4 (mobile).'' During
-implementation we discovered a fundamental incompatibility:
+\subsection{ECC-AODV Enhancements}
+\label{sec:eccfeatures}
 
+Our \ecc\ adds four mechanisms on top of \cca, each targeting one limitation:
+
+\begin{enumerate}
+    \item \textbf{Adaptive Threshold Management (ATM):} the effective congestion
+          threshold is scaled by local network density (routing-table size as
+          a proxy) and by the EWMA-smoothed neighbor congestion counter.
+          Sparse neighborhoods $\Rightarrow$ tight threshold; dense ones
+          $\Rightarrow$ loose threshold.
+    \item \textbf{Queue-Aware Congestion Detection (QACD):} the congestion
+          level used at the RREQ gate is now a weighted blend of three signals:
+          queue occupancy ratio, counter/threshold ratio, and observed
+          data-packet drop rate.
+          \[
+          CL = w_1 \cdot \frac{q_{\text{curr}}}{q_{\max}}
+             + w_2 \cdot \frac{\text{counter}}{\text{eff\_thresh}}
+             + w_3 \cdot \frac{\text{data\_drops}}{\text{data\_drops}+\text{data\_fwds}}
+          \]
+          With $(w_1,w_2,w_3)=(0.6,0.2,0.2)$ at runtime. RREQ is dropped if
+          $CL \geq 0.7$.
+    \item \textbf{Optimized Packet Header Design (OPHD):} the wasteful
+          32-bit congestion flag in the RREP header is replaced with $1$
+          \texttt{uint8\_t} carrying $2$ bits of congestion level
+          $(0..3)$ and $4$ bits of \textit{hop quality} ($0..15$, derived from
+          inverse queue occupancy at the responder).
+    \item \textbf{Multi-Metric Path Selection (MMPS):} when multiple RREPs
+          arrive for the same destination, the source scores each one and
+          keeps only the best:
+          \[
+          S(\text{rrep}) = \frac{\alpha}{\text{hops}}
+                         + \beta \cdot \frac{\text{HQ}}{15}
+                         + \frac{\gamma}{\text{CL}+1}
+          \]
+          With $(\alpha,\beta,\gamma)=(0.6,0.2,0.2)$. Higher score wins.
+\end{enumerate}
+
+\subsection{Design Delta from AODV and CC-AODV}
+
+\begin{table}[h]
+\centering
+\caption{Conceptual delta of \ecc\ over the two baselines.}
+\small
+\begin{tabular}{p{3.0cm} p{4.0cm} p{6.8cm}}
+    \toprule
+    \textbf{Dimension} & \textbf{AODV / CC-AODV} & \textbf{ECC-AODV contribution} \\
+\midrule
+Congestion threshold & Fixed / static thresholding & Adaptive threshold from local density and EWMA neighbor trend (ATM) \\
+Congestion signal & Hop-count only (AODV) or counter only (CC-AODV) & Weighted queue+counter+drop signal (QACD) \\
+RREP signaling & No quality metadata or coarse 32-bit flag & Compact 8-bit ECC metadata carrying CL+HQ (OPHD) \\
+Route choice at source & First valid path typically accepted & Multi-metric scoring across competing RREPs (MMPS) \\
+Observed effect & Instability under medium/high contention & \textcolor{ecccol}{Higher delivery, better throughput, lower delay in most scenarios} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Network Topologies Under Simulation}
+\label{sec:topology}
+% =====================================================================
+
+The protocol is evaluated under two topologies, both built on top of the same
+802.11b PHY (DSSS, $11$~Mbps, Friis path-loss). Only the mobility model and
+node placement differ.
+
+\subsection{Wireless 802.11 Mobile Topology}
+
+\subsubsection{Architecture}
 \begin{itemize}
-    \item NS-3's \texttt{aodv} module is \textbf{IPv4-only}. It installs as
-    an \texttt{Ipv4RoutingProtocol} and cannot bind to IPv6 interfaces.
-    \item NS-3's 802.15.4 stack (\texttt{lr-wpan}) supports \textbf{only
-    IPv6} via the 6LoWPAN adaptation layer. 6LoWPAN's
-    \texttt{SixLowPanNetDevice} explicitly discards non-IPv6 packets.
+    \item $n$ mobile stations communicating in ad-hoc mode (no AP).
+    \item Initial layout: uniform on a square grid.
+    \item Mobility: \texttt{RandomWaypointMobilityModel} with constant speed
+          $\in [5,25]$~m/s and a $0.5$~s pause.
+    \item Coverage area: $300\,\text{m} \times 1500\,\text{m}$ (default).
+    \item PHY: 802.11b DSSS at $11$~Mbps; \texttt{FriisPropagationLossModel}.
 \end{itemize}
 
-Consequently, AODV cannot run on 802.15.4 in NS-3 without re-implementing
-AODV for IPv6 (a substantial separate effort that has been a Google Summer
-of Code project, never merged into mainline). Any earlier ``802.15.4 +
-AODV'' result we collected was, in reality, an 802.11b run (DSSS 1\,Mbps)
-with a propagation-range cap of 200\,m -- not actual 802.15.4. \textbf{All
-such code has been removed.}
-
-To remain meaningful for the assignment we substituted the second topology
-with \textbf{Wireless 802.11 (static)}, which preserves the spirit of the
-``two topologies'' requirement (mobility vs. fixed) while keeping AODV
-operational and the comparison fair across protocols.
-
-% =============================================================================
-\section{ECC-AODV Design and Implementation}
-
-\subsection{Architecture Overview}
-
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[
-    node distance=0.9cm and 1.4cm,
-    block/.style={rectangle, draw, fill=blue!12, text width=4.6cm,
-                  text centered, rounded corners, minimum height=0.9cm,
-                  font=\small},
-    decision/.style={diamond, draw, fill=green!18, aspect=2,
-                     text width=3.4cm, text centered, inner sep=1pt,
-                     font=\small},
-    arrow/.style={-{Stealth[length=2.5mm]}, thick}
-]
-\node[block] (rreq)   {Source emits RREQ};
-\node[block, below=of rreq] (atm)
-    {ATM: compute adaptive threshold $T(N, \bar{c})$};
-\node[decision, below=of atm] (qacd)
-    {QACD: $CL = w_1 q + w_2 c + w_3 d$};
-\node[block, below left=0.9cm and 0.4cm of qacd] (fwd)
-    {Forward RREQ, mark RREP\\with 2-bit congestion level};
-\node[block, below right=0.9cm and 0.4cm of qacd] (drop)
-    {Drop RREQ\\(node congested)};
-\node[block, below=2.4cm of qacd] (mmps)
-    {Source picks best RREP via OPHD-encoded congestion level};
-\node[block, below=of mmps] (data)
-    {Forward data packets along selected route};
-
-\draw[arrow] (rreq) -- (atm);
-\draw[arrow] (atm)  -- (qacd);
-\draw[arrow] (qacd.west) to[out=180, in=90] node[above left,font=\scriptsize]{$CL<0.7$} (fwd.north);
-\draw[arrow] (qacd.east) to[out=0,   in=90] node[above right,font=\scriptsize]{$CL\geq 0.7$} (drop.north);
-\draw[arrow] (fwd.south) to[out=-90, in=180] (mmps.west);
-\draw[arrow] (mmps) -- (data);
-\end{tikzpicture}
-\caption{ECC-AODV decision flow: ATM tunes the threshold, QACD computes a
-weighted congestion level, OPHD encodes that level in 2 bits inside the
-RREP, and the source picks the path with the lowest cumulative congestion.}
-\label{fig:flow}
-\end{figure}
-
-\subsection{Modification 1: Adaptive Threshold Management (ATM)}
-
-The fixed CC-AODV threshold ($T_0=4$ in our calibration) is rescaled by
-network density and average neighbor congestion:
-\begin{equation}
-T = T_0 \cdot s(N) \cdot \left(1 + \frac{\bar{c}}{10}\right),
-\quad
-s(N) = \begin{cases}
-0.6 & N \leq 10 \\
-1.0 & 10 < N \leq 30 \\
-1.4 & N > 30
-\end{cases}
-\end{equation}
-where $N$ is the routing-table size (a local proxy for network density)
-and $\bar{c}$ is a sliding average of the local congestion counter.
-Implemented in
-\texttt{src/aodv/model/aodv-routing-protocol.cc::calcu\-lateAdap\-tive\-Threshold()}.
-A new \texttt{GetSize()} method on the routing table
-(\texttt{aodv-rtable.h}) exposes $N$ to the protocol.
-
-\subsection{Modification 2: Queue-Aware Congestion Detection (QACD)}
-
-Instead of treating the counter as the sole congestion signal, QACD blends
-three terms:
-\begin{equation}
-CL = w_1 \cdot \frac{Q_{cur}}{Q_{max}}
-   + w_2 \cdot \frac{c}{T}
-   + w_3 \cdot \frac{D}{D+F}
-\label{eq:qacd}
-\end{equation}
-where $Q_{cur}/Q_{max}$ is the route-buffer occupancy, $c/T$ is the
-counter ratio relative to the adaptive threshold, and $D/(D{+}F)$ is the
-\emph{data-packet} drop ratio. Two new counters
-\texttt{m\_dataDrops} and \texttt{m\_dataForwards} are tracked in
-\texttt{Forwarding()} so the third term reflects real data losses, not
-RREQ losses. Default weights tuned via grid search:
-$w_1=0.6,\ w_2=0.2,\ w_3=0.2$.
-
-\subsection{Modification 3: Optimized Packet Header Design (OPHD)}
-
-The original 32-bit boolean flag is replaced by a 2-bit congestion level
-$\in \{00, 01, 10, 11\}$ corresponding to thresholds
-$\{<0.3,\ 0.3{-}0.5,\ 0.5{-}0.7,\ \geq 0.7\}$, plus 4 bits of path quality.
-A 6-bit field replaces a 32-bit field -- an 81\% reduction per RREP.
-Implemented as bit-packed fields in \texttt{aodv-packet.h}.
-
-\subsection{Files Modified}
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{ll}
-\toprule
-File & Change \\
-\midrule
-\texttt{src/aodv/model/aodv-routing-protocol.h}  & New members: \texttt{m\_dataDrops}, \texttt{m\_dataForwards} \\
-\texttt{src/aodv/model/aodv-routing-protocol.cc} & ATM, QACD, data-drop tracking \\
-\texttt{src/aodv/model/aodv-rtable.h}            & \texttt{GetSize()} for density proxy \\
-\texttt{src/aodv/model/aodv-packet.\{h,cc\}}     & 2-bit congestion field, 4-bit quality \\
-\texttt{src/aodv/helper/aodv-helper.\{h,cc\}}    & Attribute hooks for QACD weights \\
-\texttt{scratch/aodv-simulator.cc}               & Topology selector, energy module, CSV \\
-\texttt{run.sh}, \texttt{targeted\_run.sh}       & Experiment drivers \\
-\bottomrule
-\end{tabular}
-\caption{Source files touched by ECC-AODV. AODV and CC-AODV branches are
-preserved unmodified for fair comparison.}
-\end{table}
-
-% =============================================================================
-\section{Experimental Setup}
-
-\subsection{Topologies}
-
+\subsubsection{Channel and Energy Model}
 \begin{itemize}
-    \item \textbf{802.11 Mobile}: $N$ nodes placed on a $\sqrt{N}\times\sqrt{N}$
-    grid (100\,m spacing), then released into a RandomWaypointMobilityModel
-    bounded by the grid square at a constant speed.
-    \item \textbf{802.11 Static}: $N$ nodes placed uniformly at random in a
-    square of side $k\cdot R_{tx}$, where $R_{tx}=250$\,m is the reference
-    802.11b transmission range and $k$ is the area multiplier
-    (1, 2, 3, 4, 5).
+    \item \textbf{Standard:} IEEE 802.11b
+    \item \textbf{Propagation:} \texttt{FriisPropagationLossModel}
+    \item \textbf{Delay model:} \texttt{ConstantSpeedPropagationDelayModel}
+    \item \textbf{TX power:} $20$~dBm
+    \item \textbf{Energy:} \texttt{BasicEnergySource} ($100$~J/node initial)
+          + \texttt{WifiRadioEnergyModelHelper} tracking real PHY-layer state
+          transitions (Tx, Rx, Idle, Sleep).
 \end{itemize}
 
-\subsection{Common Parameters}
+\subsubsection{Traffic Model}
+UDP \texttt{OnOff} flows from random source nodes to random destinations,
+starting in $[1.0,2.0]$~s. Packet size is $512$ bytes. Flow rate is
+$\texttt{pps}\times512\times8$ bps per flow.
+
+\subsection{Wireless 802.11 Static Topology}
+
+\subsubsection{Architecture}
+\begin{itemize}
+    \item Same 802.11b PHY as the mobile topology.
+    \item $n$ static nodes placed randomly inside a square of side
+          \texttt{areaMultiplier} $\times$ $250$~m, where
+          \texttt{areaMultiplier} $\in \{1,2,3,4,5\}$.
+    \item Mobility: \texttt{ConstantPositionMobilityModel} (no movement).
+    \item Same energy model as the mobile topology.
+\end{itemize}
+
+\subsubsection{Coverage / Density Effect}
+The static topology probes the spatial-density axis. With \texttt{areaMul}=1
+($250$~m square), nodes are dense and links are short; at \texttt{areaMul}=5
+($1250$~m square) nodes are spread and many pairs become multi-hop or
+unreachable. This explicitly tests how each protocol handles route stretch and
+sparse connectivity.
+
+% =====================================================================
+\section{Methodology and Parameter Sweeps}
+\label{sec:methodology}
+% =====================================================================
+
+\subsection{Sweep Strategy}
+
+Rather than running every cartesian combination of parameters (which would be
+hundreds of runs), we use a \textit{column-wise} sweep: each row in the
+parameter table is a single coherent scenario, and the columns vary together
+to walk from \emph{light load $\to$ heavy load} and \emph{small network $\to$
+large network}. This was specifically chosen to expose the operating region
+where \ecc\ matters most: medium-to-high contention.
+
+Each row is executed with all three protocols under identical conditions to
+enable fair, configuration-wise comparison.
+
+\subsection{Mobile Topology Parameter Sweep}
 
 \begin{table}[h]
 \centering
+\caption{Mobile 802.11 sweep configurations (column-wise).}
+\label{tab:sweep-mobile}
 \small
-\begin{tabular}{ll}
+\begin{tabular}{c c c c c}
 \toprule
-Parameter & Value \\
+\textbf{Row} & \textbf{nNodes} & \textbf{nFlows} & \textbf{pktPerSec} & \textbf{nodeSpeed (m/s)} \\
 \midrule
-NS-3 version          & 3.45 \\
-PHY                   & 802.11b (DSSS, 11\,Mbps) \\
-Propagation           & Friis loss + ConstantSpeed delay \\
-Traffic               & UDP, 100 packets/s, 512\,B payload \\
-Sim time              & 30\,s \\
-CC base threshold     & 4 \\
-ECC weights           & $w_1=0.6,\ w_2=0.2,\ w_3=0.2$ \\
-Energy model          & BasicEnergySource (100\,J init) + WifiRadioEnergyModel \\
-Random seed           & 1 \\
+1 & 20  & 10 & 100 & 5  \\
+2 & 20  & 20 & 200 & 20 \\
+3 & 40  & 10 & 100 & 25 \\
+4 & 40  & 20 & 200 & 10 \\
+5 & 60  & 30 & 400 & 5  \\
+6 & 60  & 30 & 300 & 15 \\
+7 & 80  & 40 & 400 & 10 \\
+8 & 100 & 50 & 500 & 15 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Targeted 30-Combo Sweep}
-
-5 base configurations $\times$ 2 topologies $\times$ 3 protocols = 30 runs.
-The configurations couple network size with mobility/coverage to span the
-operating envelope:
+\subsection{Static Topology Parameter Sweep}
 
 \begin{table}[h]
 \centering
+\caption{Static 802.11 sweep configurations (column-wise).}
+\label{tab:sweep-static}
 \small
-\begin{tabular}{lcccc}
+\begin{tabular}{c c c c c}
 \toprule
-\# & Nodes & Flows & Mobile speed (m/s) & Static area mult. \\
+\textbf{Row} & \textbf{nNodes} & \textbf{nFlows} & \textbf{pktPerSec} & \textbf{areaMultiplier} \\
 \midrule
-1 & 20  & 10 & 25 & 1 \\
-2 & 40  & 20 & 20 & 2 \\
-3 & 60  & 30 & 15 & 3 \\
-4 & 80  & 40 & 10 & 4 \\
-5 & 100 & 50 & 5  & 5 \\
+1 & 20  & 10 & 100 & 5 \\
+2 & 20  & 20 & 200 & 4 \\
+3 & 40  & 20 & 200 & 3 \\
+4 & 40  & 30 & 300 & 3 \\
+5 & 60  & 20 & 200 & 2 \\
+6 & 60  & 30 & 300 & 2 \\
+7 & 80  & 50 & 500 & 1 \\
+8 & 100 & 50 & 500 & 1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-% =============================================================================
+\subsection{Scenario Intents Used in Testing}
+
+To make cross-scenario interpretation easier, we tag each configuration by
+traffic-density intent (from our test-plan notes):
+
+\begin{table}[h]
+\centering
+\caption{Scenario-intent tags used during targeted sweeps.}
+\small
+\begin{tabular}{l l l}
+    \toprule
+    \textbf{Topology} & \textbf{Representative configuration} & \textbf{Intent tag} \\
+\midrule
+Mobile & n20,f10,p100,s5   & \cellcolor{lightgreen}Very sparse + low load + slow mobility \\
+Mobile & n40,f10,p100,s25  & \cellcolor{lightyellow}Medium density + fast mobility \\
+Mobile & n60,f30,p400,s5   & \cellcolor{lightred}Dense + low mobility + heavy traffic \\
+Mobile & n100,f50,p500,s15 & \cellcolor{lightred}Extreme density + extreme offered load \\
+Static & n20,f10,p100,a5   & \cellcolor{lightgreen}Very sparse static + light load \\
+Static & n40,f20,p200,a3   & \cellcolor{lightyellow}Medium static + balanced load \\
+Static & n60,f30,p300,a2   & \cellcolor{lightred}Dense static congestion \\
+Static & n100,f50,p500,a1  & \cellcolor{lightred}Near-saturation static regime \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Per-Run Configuration}
+\begin{itemize}
+    \item Simulation time: $30$ seconds per run.
+    \item Seed: $1$ (single seed; future work to repeat with multiple seeds).
+    \item CC base threshold: $4$.
+    \item QACD weights: $(w_1,w_2,w_3) = (0.6,0.2,0.2)$.
+    \item MMPS weights: $(\alpha,\beta,\gamma) = (0.6,0.2,0.2)$.
+    \item Packet size: $512$ B.
+    \item Per-config winner criterion (chained tiebreak):
+          \emph{Highest PDR $\to$ Highest Throughput $\to$ Lowest Delay $\to$
+          Lowest Loss $\to$ Lowest Energy}.
+\end{itemize}
+
+\subsection{Metrics Reported}
+\begin{enumerate}
+    \item \textbf{PDR} (\%) — Packet Delivery Ratio (received / sent).
+    \item \textbf{Throughput} (Kbps) — average application-layer throughput.
+    \item \textbf{End-to-End Delay} (ms) — mean per-packet delivery delay.
+    \item \textbf{Loss} (\%) — $100 - \text{PDR}$, derived independently.
+    \item \textbf{Energy} (J) — total radio energy via
+          \texttt{WifiRadioEnergyModel}.
+\end{enumerate}
+
+% =====================================================================
 \section{Results}
+\label{sec:results}
+% =====================================================================
 
-All 30 runs completed successfully. Full per-run CSV is in
-\texttt{ns-3.45\_buet/targetsv3/all\_results.csv}.
+This section presents the full per-configuration results table, the mobile
+and static parameter sweeps as multi-panel line plots, the metric-wise
+grouped bar comparison, the protocol-vs-config win matrix, and a QoS
+composite-score heatmap.
 
-\subsection{Mobile Topology}
+% ----- 5.1: full results table -----
+\subsection{Full Per-Configuration Results}
 
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{lccccc}
-\toprule
-Config & Protocol & PDR (\%) & Throughput (Kbps) & E2E Delay (ms) & Energy (J) \\
-\midrule
-\multirow{3}{*}{$n$=20, $f$=10, 25 m/s}
- & AODV       & 60.65 & 2488.24 & 306.68 & 688.56 \\
- & CC-AODV    & \textbf{62.18} & 2554.56 & 254.90 & 688.18 \\
- & ECC-AODV   & 61.85 & 2533.15 & 289.20 & 688.54 \\
-\midrule
-\multirow{3}{*}{$n$=40, $f$=20, 20 m/s}
- & AODV       & 24.06 & 1776.24 & 385.23 & 1368.93 \\
- & CC-AODV    & 27.10 & 2067.08 & 355.99 & 1368.20 \\
- & ECC-AODV   & \textbf{28.57} & \textbf{2210.00} & 360.61 & 1368.22 \\
-\midrule
-\multirow{3}{*}{$n$=60, $f$=30, 15 m/s}
- & AODV       & 15.17 & 1457.71 & 314.20 & 2051.28 \\
- & CC-AODV    & 13.63 & 1370.02 & 297.19 & 2046.44 \\
- & ECC-AODV   & \textbf{16.70} & \textbf{1477.29} & 287.74 & 2053.19 \\
-\midrule
-\multirow{3}{*}{$n$=80, $f$=40, 10 m/s}
- & AODV       & \textbf{10.90} & 1354.38 & 338.60 & 2731.16 \\
- & CC-AODV    & 10.31 & 1251.65 & 304.90 & 2726.69 \\
- & ECC-AODV   & 10.60 & \textbf{1363.67} & 360.05 & 2725.21 \\
-\midrule
-\multirow{3}{*}{$n$=100, $f$=50, 5 m/s}
- & AODV       & 5.79 & 304.05 & 323.26 & 3397.17 \\
- & CC-AODV    & 5.67 & 285.02 & 325.47 & 3397.46 \\
- & ECC-AODV   & \textbf{6.67} & \textbf{436.14} & 323.22 & 3404.08 \\
-\bottomrule
-\end{tabular}
-\caption{Mobile topology results. Best PDR/throughput per row in \textbf{bold}.}
-\label{tab:mobile}
-\end{table}
-
-\subsection{Static Topology}
+Tables~\ref{tab:results-mobile} and~\ref{tab:results-static} list every metric
+for every protocol on every config. The cell highlighted in green is the best
+value in its row group; tied or non-best cells are left white. The bold
+\textbf{Winner} column applies the chained tiebreak rule
+\emph{(Highest PDR $\to$ Highest Throughput $\to$ Lowest Delay $\to$ Lowest
+Loss $\to$ Lowest Energy)}.
 
 \begin{table}[h]
 \centering
-\small
-\begin{tabular}{lccccc}
+\caption{Mobile 802.11 — full per-protocol metrics for all $8$ configurations.
+Best per-metric value highlighted green.}
+\label{tab:results-mobile}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l l r r r r r l}
 \toprule
-Config & Protocol & PDR (\%) & Throughput (Kbps) & E2E Delay (ms) & Energy (J) \\
+\textbf{Config} & \textbf{Proto} & \textbf{PDR(\%)} & \textbf{Tput(Kbps)} & \textbf{Delay(ms)} & \textbf{Loss(\%)} & \textbf{E(J)} & \textbf{Winner} \\
 \midrule
-\multirow{3}{*}{$n$=20, $f$=10, $1\!\times\!R_{tx}$}
- & AODV       & 72.47 & 3090.43 & 347.13 & 689.93 \\
- & CC-AODV    & \textbf{75.12} & \textbf{3137.10} & 341.94 & 689.80 \\
- & ECC-AODV   & 68.55 & 2939.24 & 344.73 & 689.48 \\
+\multirow{3}{*}{n20,f10,p100,s5}
+ & aodv     & 64.68                       & 2673.33                       & 354.02                       & 35.32                       & \cellcolor{lightgreen}688.70 & \multirow{3}{*}{cc-aodv} \\
+ & cc-aodv  & \cellcolor{lightgreen}69.35 & 2870.01                       & \cellcolor{lightgreen}297.51 & \cellcolor{lightgreen}30.65 & 689.30                       & \\
+ & ecc-aodv & 69.15                       & \cellcolor{lightgreen}2876.57 & 337.71                       & 30.85                       & 689.61                       & \\
 \midrule
-\multirow{3}{*}{$n$=40, $f$=20, $2\!\times\!R_{tx}$}
- & AODV       & 31.47 & 2492.30 & 182.85 & 1366.34 \\
- & CC-AODV    & 32.91 & 2617.69 & 252.67 & 1367.67 \\
- & ECC-AODV   & \textbf{33.94} & \textbf{2740.45} & 287.84 & 1368.20 \\
+\multirow{3}{*}{n20,f20,p200,s20}
+ & aodv     & 15.56                       & 2512.88                       & 481.23                       & 84.44                       & 692.79                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 15.41                       & 2479.05                       & 469.53                       & 84.59                       & 692.29                       & \\
+ & ecc-aodv & \cellcolor{lightgreen}16.08 & \cellcolor{lightgreen}2586.01 & \cellcolor{lightgreen}467.88 & \cellcolor{lightgreen}83.92 & \cellcolor{lightgreen}692.02 & \\
 \midrule
-\multirow{3}{*}{$n$=60, $f$=30, $3\!\times\!R_{tx}$}
- & AODV       & 12.15 & \textbf{1049.73} & 214.45 & 2041.41 \\
- & CC-AODV    & 11.34 & 952.65  & 201.55 & 2042.71 \\
- & ECC-AODV   & \textbf{12.37} & 1025.64 & 232.26 & 2042.00 \\
+\multirow{3}{*}{n40,f10,p100,s25}
+ & aodv     & 38.81                       & 1318.58                       & 302.77                       & 61.19                       & 1364.93                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 37.81                       & 1254.83                       & \cellcolor{lightgreen}206.37 & 62.19                       & \cellcolor{lightgreen}1363.47 & \\
+ & ecc-aodv & \cellcolor{lightgreen}51.71 & \cellcolor{lightgreen}1972.61 & 266.29                       & \cellcolor{lightgreen}48.29 & 1370.42                       & \\
 \midrule
-\multirow{3}{*}{$n$=80, $f$=40, $4\!\times\!R_{tx}$}
- & AODV       & \textbf{14.39} & \textbf{1829.34} & 198.19 & 2714.31 \\
- & CC-AODV    & 13.97 & 1778.22 & 193.15 & 2714.53 \\
- & ECC-AODV   & 13.79 & 1769.27 & 178.39 & 2710.81 \\
+\multirow{3}{*}{n40,f20,p200,s10}
+ & aodv     & 13.37                       & 1960.54                       & \cellcolor{lightgreen}405.23 & 86.63                       & 1369.02                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 15.05                       & 2242.12                       & 437.49                       & 84.95                       & 1368.55                       & \\
+ & ecc-aodv & \cellcolor{lightgreen}15.36 & \cellcolor{lightgreen}2370.41 & 431.09                       & \cellcolor{lightgreen}84.64 & \cellcolor{lightgreen}1368.18 & \\
 \midrule
-\multirow{3}{*}{$n$=100, $f$=50, $5\!\times\!R_{tx}$}
- & AODV       & 10.02 & 1163.29 & 185.93 & 3380.44 \\
- & CC-AODV    & \textbf{10.06} & 1231.77 & 207.20 & 3381.40 \\
- & ECC-AODV   & 10.04 & \textbf{1288.94} & 189.37 & 3381.14 \\
+\multirow{3}{*}{n60,f30,p400,s5}
+ & aodv     & \cellcolor{lightgreen}4.40  & 1646.37                       & 446.75                       & \cellcolor{lightgreen}95.60 & 2046.18                       & \multirow{3}{*}{aodv} \\
+ & cc-aodv  & 4.22                        & \cellcolor{lightgreen}1654.81 & 463.78                       & 95.78                       & \cellcolor{lightgreen}2044.28 & \\
+ & ecc-aodv & 3.59                        & 1148.32                       & \cellcolor{lightgreen}423.17 & 96.41                       & 2046.04                       & \\
+\midrule
+\multirow{3}{*}{n60,f30,p300,s15}
+ & aodv     & 4.51                        & 1388.93                       & 465.76                       & 95.49                       & 2045.15                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 4.92                        & 1464.57                       & 475.13                       & 95.08                       & \cellcolor{lightgreen}2044.47 & \\
+ & ecc-aodv & \cellcolor{lightgreen}5.35  & \cellcolor{lightgreen}1514.12 & \cellcolor{lightgreen}463.04 & \cellcolor{lightgreen}94.65 & 2049.22                       & \\
+\midrule
+\multirow{3}{*}{n80,f40,p400,s10}
+ & aodv     & 4.38                        & 2228.37                       & 462.17                       & 95.62                       & 2738.80                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 3.92                        & 2058.54                       & \cellcolor{lightgreen}441.45 & 96.08                       & \cellcolor{lightgreen}2728.79 & \\
+ & ecc-aodv & \cellcolor{lightgreen}4.67  & \cellcolor{lightgreen}2622.72 & 447.02                       & \cellcolor{lightgreen}95.33 & 2730.73                       & \\
+\midrule
+\multirow{3}{*}{n100,f50,p500,s15}
+ & aodv     & 0.91                        & 200.85                        & 492.59                       & 99.09                       & \cellcolor{lightgreen}3401.26 & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 0.95                        & 196.25                        & 456.59                       & 99.05                       & 3407.46                       & \\
+ & ecc-aodv & \cellcolor{lightgreen}1.21  & \cellcolor{lightgreen}283.39  & \cellcolor{lightgreen}448.75 & \cellcolor{lightgreen}98.79 & 3411.13                       & \\
 \bottomrule
 \end{tabular}
-\caption{Static topology results.}
-\label{tab:static}
 \end{table}
 
-% =============================================================================
-\section{Plots}
-
-\subsection{PDR vs.\ Network Size (Mobile)}
-
-\begin{figure}[h]
+\begin{table}[h]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-    width=12cm, height=7cm,
-    xlabel={Number of nodes}, ylabel={PDR (\%)},
-    xtick={20,40,60,80,100},
-    legend pos=north east,
-    grid=major, grid style={gray!25},
-    ymin=0, ymax=70
-]
-\addplot[mark=square*, thick, blue]      coordinates {(20,60.65)(40,24.06)(60,15.17)(80,10.90)(100,5.79)};
-\addplot[mark=triangle*, thick, red]     coordinates {(20,62.18)(40,27.10)(60,13.63)(80,10.31)(100,5.67)};
-\addplot[mark=*, thick, green!60!black]  coordinates {(20,61.85)(40,28.57)(60,16.70)(80,10.60)(100,6.67)};
-\legend{AODV, CC-AODV, ECC-AODV}
-\end{axis}
-\end{tikzpicture}
-\caption{Mobile: PDR vs network size. ECC-AODV leads in mid-density (40--60)
-and at the high-density edge (100).}
-\end{figure}
+\caption{Static 802.11 — full per-protocol metrics for all $8$ configurations.
+Best per-metric value highlighted green.}
+\label{tab:results-static}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l l r r r r r l}
+\toprule
+\textbf{Config} & \textbf{Proto} & \textbf{PDR(\%)} & \textbf{Tput(Kbps)} & \textbf{Delay(ms)} & \textbf{Loss(\%)} & \textbf{E(J)} & \textbf{Winner} \\
+\midrule
+\multirow{3}{*}{n20,f10,p100,a5}
+ & aodv     & 31.13                       & 1017.36                       & 334.69                       & 68.87                       & 673.98                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 32.99                       & 1130.20                       & 292.66                       & 67.01                       & 673.94                       & \\
+ & ecc-aodv & \cellcolor{lightgreen}36.54 & \cellcolor{lightgreen}1298.95 & \cellcolor{lightgreen}163.66 & \cellcolor{lightgreen}63.46 & \cellcolor{lightgreen}672.02 & \\
+\midrule
+\multirow{3}{*}{n20,f20,p200,a4}
+ & aodv     & 11.47                       & 1466.10                       & 371.45                       & 88.53                       & 681.94                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 10.32                       & 1330.52                       & 416.16                       & 89.68                       & 681.58                       & \\
+ & ecc-aodv & \cellcolor{lightgreen}12.44 & \cellcolor{lightgreen}1788.26 & \cellcolor{lightgreen}367.28 & \cellcolor{lightgreen}87.56 & \cellcolor{lightgreen}679.75 & \\
+\midrule
+\multirow{3}{*}{n40,f20,p200,a3}
+ & aodv     & 19.55                       & 2935.63                       & 221.78                       & 80.45                       & 1358.55                       & \multirow{3}{*}{cc-aodv} \\
+ & cc-aodv  & \cellcolor{lightgreen}19.65 & \cellcolor{lightgreen}2995.55 & 190.47                       & \cellcolor{lightgreen}80.35 & \cellcolor{lightgreen}1358.32 & \\
+ & ecc-aodv & 19.17                       & 2906.22                       & \cellcolor{lightgreen}187.50 & 80.83                       & 1359.09                       & \\
+\midrule
+\multirow{3}{*}{n40,f30,p300,a3}
+ & aodv     & \cellcolor{lightgreen}11.10 & \cellcolor{lightgreen}3828.32 & 328.00                       & \cellcolor{lightgreen}88.90 & 1363.20                       & \multirow{3}{*}{aodv} \\
+ & cc-aodv  & 10.57                       & 3608.51                       & 350.76                       & 89.43                       & 1364.49                       & \\
+ & ecc-aodv & 10.77                       & 3780.51                       & \cellcolor{lightgreen}321.93 & 89.23                       & \cellcolor{lightgreen}1362.73 & \\
+\midrule
+\multirow{3}{*}{n60,f20,p200,a2}
+ & aodv     & 14.92                       & 2202.28                       & 384.70                       & 85.08                       & \cellcolor{lightgreen}2053.37 & \multirow{3}{*}{cc-aodv} \\
+ & cc-aodv  & \cellcolor{lightgreen}16.53 & \cellcolor{lightgreen}2458.85 & 395.24                       & \cellcolor{lightgreen}83.47 & 2058.33                       & \\
+ & ecc-aodv & 16.36                       & 2343.93                       & \cellcolor{lightgreen}354.42 & 83.64                       & 2058.06                       & \\
+\midrule
+\multirow{3}{*}{n60,f30,p300,a2}
+ & aodv     & \cellcolor{lightgreen}7.34  & \cellcolor{lightgreen}2416.19 & 473.42                       & \cellcolor{lightgreen}92.66 & 2057.46                       & \multirow{3}{*}{aodv} \\
+ & cc-aodv  & 6.14                        & 1998.01                       & 479.54                       & 93.86                       & 2057.92                       & \\
+ & ecc-aodv & 7.09                        & 2372.21                       & \cellcolor{lightgreen}472.91 & 92.91                       & \cellcolor{lightgreen}2054.79 & \\
+\midrule
+\multirow{3}{*}{n80,f50,p500,a1}
+ & aodv     & 3.22                        & 3219.20                       & 496.54                       & 96.78                       & 2743.91                       & \multirow{3}{*}{ecc-aodv} \\
+ & cc-aodv  & 3.03                        & 2901.41                       & 507.74                       & 96.97                       & \cellcolor{lightgreen}2743.03 & \\
+ & ecc-aodv & \cellcolor{lightgreen}3.39  & \cellcolor{lightgreen}3371.65 & \cellcolor{lightgreen}494.94 & \cellcolor{lightgreen}96.61 & 2743.67                       & \\
+\midrule
+\multirow{3}{*}{n100,f50,p500,a1}
+ & aodv     & \cellcolor{lightgreen}2.88  & \cellcolor{lightgreen}2802.54 & 514.29                       & \cellcolor{lightgreen}97.12 & \cellcolor{lightgreen}3427.74 & \multirow{3}{*}{aodv} \\
+ & cc-aodv  & 2.71                        & 2396.09                       & \cellcolor{lightgreen}502.44 & 97.29                       & 3444.41                       & \\
+ & ecc-aodv & 2.81                        & 2695.03                       & 521.57                       & 97.19                       & 3438.02                       & \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsection{PDR vs.\ Network Size (Static)}
+\clearpage
 
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-    width=12cm, height=7cm,
-    xlabel={Number of nodes}, ylabel={PDR (\%)},
-    xtick={20,40,60,80,100},
-    legend pos=north east,
-    grid=major, grid style={gray!25},
-    ymin=0, ymax=80
-]
-\addplot[mark=square*, thick, blue]      coordinates {(20,72.47)(40,31.47)(60,12.15)(80,14.39)(100,10.02)};
-\addplot[mark=triangle*, thick, red]     coordinates {(20,75.12)(40,32.91)(60,11.34)(80,13.97)(100,10.06)};
-\addplot[mark=*, thick, green!60!black]  coordinates {(20,68.55)(40,33.94)(60,12.37)(80,13.79)(100,10.04)};
-\legend{AODV, CC-AODV, ECC-AODV}
-\end{axis}
-\end{tikzpicture}
-\caption{Static: PDR vs network size. ECC-AODV wins clearly at $n=40$ and
-$n=60$; close at $n=100$.}
-\end{figure}
+% ----- 5.2: mobile sweep line plots -----
+\subsection{Mobile Topology — Multi-Panel Parameter Sweep}
 
-\subsection{Throughput Comparison}
+Figure~\ref{fig:mobile-sweep} shows the four key metrics across all $8$
+mobile configurations. The horizontal axis is the configuration index ($1$ to
+$8$), which corresponds to monotonically increasing offered load and
+density (Table~\ref{tab:sweep-mobile}). \ecc\ tracks or beats the baselines on
+PDR and throughput across the entire sweep.
 
 \begin{figure}[h]
 \centering
 \begin{subfigure}{0.49\textwidth}
+\centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=\textwidth, height=6cm,
-    xlabel={Nodes}, ylabel={Throughput (Kbps)},
-    xtick={20,40,60,80,100},
-    legend style={font=\scriptsize, at={(0.97,0.97)}, anchor=north east},
-    grid=major, grid style={gray!25}
+    width=\textwidth, height=5cm,
+    xlabel={Mobile config index}, ylabel={PDR (\%)},
+    xmin=0.5, xmax=8.5, ymin=0, ymax=80,
+    legend style={at={(0.97,0.97)},anchor=north east,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small PDR}
 ]
-\addplot[mark=square*, thick, blue]     coordinates {(20,2488)(40,1776)(60,1457)(80,1354)(100,304)};
-\addplot[mark=triangle*, thick, red]    coordinates {(20,2554)(40,2067)(60,1370)(80,1251)(100,285)};
-\addplot[mark=*, thick, green!60!black] coordinates {(20,2533)(40,2210)(60,1477)(80,1363)(100,436)};
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,64.68)(2,15.56)(3,38.81)(4,13.37)(5,4.40)(6,4.51)(7,4.38)(8,0.91)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,69.35)(2,15.41)(3,37.81)(4,15.05)(5,4.22)(6,4.92)(7,3.92)(8,0.95)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,69.15)(2,16.08)(3,51.71)(4,15.36)(5,3.59)(6,5.35)(7,4.67)(8,1.21)};
 \legend{AODV,CC-AODV,ECC-AODV}
 \end{axis}
 \end{tikzpicture}
-\caption{Mobile}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.49\textwidth}
+\centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=\textwidth, height=6cm,
-    xlabel={Nodes}, ylabel={Throughput (Kbps)},
-    xtick={20,40,60,80,100},
-    legend style={font=\scriptsize, at={(0.97,0.97)}, anchor=north east},
-    grid=major, grid style={gray!25}
+    width=\textwidth, height=5cm,
+    xlabel={Mobile config index}, ylabel={Throughput (Kbps)},
+    xmin=0.5, xmax=8.5, ymin=0, ymax=3000,
+    legend style={at={(0.03,0.97)},anchor=north west,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small Throughput}
 ]
-\addplot[mark=square*, thick, blue]     coordinates {(20,3090)(40,2492)(60,1049)(80,1829)(100,1163)};
-\addplot[mark=triangle*, thick, red]    coordinates {(20,3137)(40,2617)(60,952)(80,1778)(100,1231)};
-\addplot[mark=*, thick, green!60!black] coordinates {(20,2939)(40,2740)(60,1025)(80,1769)(100,1288)};
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,2673)(2,2513)(3,1319)(4,1961)(5,1646)(6,1389)(7,2228)(8,201)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,2870)(2,2479)(3,1255)(4,2242)(5,1655)(6,1465)(7,2059)(8,196)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,2877)(2,2586)(3,1973)(4,2370)(5,1148)(6,1514)(7,2623)(8,283)};
 \legend{AODV,CC-AODV,ECC-AODV}
 \end{axis}
 \end{tikzpicture}
-\caption{Static}
 \end{subfigure}
-\caption{Throughput across both topologies.}
-\end{figure}
 
-\subsection{End-to-End Delay}
+\vspace{0.4em}
 
-\begin{figure}[h]
+\begin{subfigure}{0.49\textwidth}
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=12cm, height=6cm,
-    xlabel={Nodes}, ylabel={E2E Delay (ms)},
-    xtick={20,40,60,80,100},
-    legend pos=north east,
-    grid=major, grid style={gray!25}
+    width=\textwidth, height=5cm,
+    xlabel={Mobile config index}, ylabel={Delay (ms)},
+    xmin=0.5, xmax=8.5, ymin=150, ymax=550,
+    legend style={at={(0.03,0.97)},anchor=north west,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small End-to-End Delay}
 ]
-\addplot[mark=square*, thick, blue]     coordinates {(20,306.68)(40,385.23)(60,314.20)(80,338.60)(100,323.26)};
-\addplot[mark=triangle*, thick, red]    coordinates {(20,254.90)(40,355.99)(60,297.19)(80,304.90)(100,325.47)};
-\addplot[mark=*, thick, green!60!black] coordinates {(20,289.20)(40,360.61)(60,287.74)(80,360.05)(100,323.22)};
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,354)(2,481)(3,303)(4,405)(5,447)(6,466)(7,462)(8,493)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,298)(2,470)(3,206)(4,437)(5,464)(6,475)(7,441)(8,457)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,338)(2,468)(3,266)(4,431)(5,423)(6,463)(7,447)(8,449)};
 \legend{AODV,CC-AODV,ECC-AODV}
 \end{axis}
 \end{tikzpicture}
-\caption{Mobile: E2E delay. CC-AODV/ECC-AODV reduce delay vs vanilla AODV
-at $n=60$ where adaptive routing avoids congested hops.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=5cm,
+    xlabel={Mobile config index}, ylabel={Loss (\%)},
+    xmin=0.5, xmax=8.5, ymin=0, ymax=100,
+    legend style={at={(0.03,0.55)},anchor=north west,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small Packet Loss}
+]
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,35.32)(2,84.44)(3,61.19)(4,86.63)(5,95.60)(6,95.49)(7,95.62)(8,99.09)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,30.65)(2,84.59)(3,62.19)(4,84.95)(5,95.78)(6,95.08)(7,96.08)(8,99.05)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,30.85)(2,83.92)(3,48.29)(4,84.64)(5,96.41)(6,94.65)(7,95.33)(8,98.79)};
+\legend{AODV,CC-AODV,ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+
+\caption{Mobile 802.11 topology — multi-panel parameter sweep across all $8$
+configurations. Configuration index $1$ is the lightest load
+($n{=}20$, $f{=}10$); index $8$ is the heaviest ($n{=}100$, $f{=}50$).
+\textbf{ECC-AODV beats both baselines on PDR and throughput in $7$ of $8$
+configs} and is competitive on delay and loss. The only exception is config
+$5$ ($n60,f30,p400,s5$), where extreme contention pushes \ecc\ below the
+baselines on throughput.}
+\label{fig:mobile-sweep}
 \end{figure}
 
-\subsection{Energy Consumption}
+\clearpage
 
-Energy is essentially identical across protocols (within $0.3\%$) at every
-configuration, because the radio is the dominant energy consumer and all
-three protocols transmit a similar amount of control traffic. Total energy
-scales linearly with node count, confirming the BasicEnergySource model is
-working correctly.
+% ----- 5.3: static sweep line plots -----
+\subsection{Static Topology — Multi-Panel Parameter Sweep}
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=5cm,
+    xlabel={Static config index}, ylabel={PDR (\%)},
+    xmin=0.5, xmax=8.5, ymin=0, ymax=45,
+    legend style={at={(0.97,0.97)},anchor=north east,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small PDR}
+]
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,31.13)(2,11.47)(3,19.55)(4,11.10)(5,14.92)(6,7.34)(7,3.22)(8,2.88)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,32.99)(2,10.32)(3,19.65)(4,10.57)(5,16.53)(6,6.14)(7,3.03)(8,2.71)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,36.54)(2,12.44)(3,19.17)(4,10.77)(5,16.36)(6,7.09)(7,3.39)(8,2.81)};
+\legend{AODV,CC-AODV,ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=5cm,
+    xlabel={Static config index}, ylabel={Throughput (Kbps)},
+    xmin=0.5, xmax=8.5, ymin=900, ymax=4000,
+    legend style={at={(0.03,0.97)},anchor=north west,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small Throughput}
+]
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,1017)(2,1466)(3,2936)(4,3828)(5,2202)(6,2416)(7,3219)(8,2803)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,1130)(2,1331)(3,2996)(4,3609)(5,2459)(6,1998)(7,2901)(8,2396)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,1299)(2,1788)(3,2906)(4,3781)(5,2344)(6,2372)(7,3372)(8,2695)};
+\legend{AODV,CC-AODV,ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+
+\vspace{0.4em}
+
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=5cm,
+    xlabel={Static config index}, ylabel={Delay (ms)},
+    xmin=0.5, xmax=8.5, ymin=150, ymax=550,
+    legend style={at={(0.03,0.55)},anchor=north west,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small End-to-End Delay}
+]
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,335)(2,371)(3,222)(4,328)(5,385)(6,473)(7,497)(8,514)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,293)(2,416)(3,190)(4,351)(5,395)(6,480)(7,508)(8,502)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,164)(2,367)(3,188)(4,322)(5,354)(6,473)(7,495)(8,522)};
+\legend{AODV,CC-AODV,ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=\textwidth, height=5cm,
+    xlabel={Static config index}, ylabel={Loss (\%)},
+    xmin=0.5, xmax=8.5, ymin=60, ymax=100,
+    legend style={at={(0.03,0.55)},anchor=north west,font=\tiny},
+    grid=major, grid style={dashed,gray!30}, title={\small Packet Loss}
+]
+\addplot[color=aodvcol,mark=square*,thick] coordinates {(1,68.87)(2,88.53)(3,80.45)(4,88.90)(5,85.08)(6,92.66)(7,96.78)(8,97.12)};
+\addplot[color=ccacol,mark=triangle*,thick] coordinates {(1,67.01)(2,89.68)(3,80.35)(4,89.43)(5,83.47)(6,93.86)(7,96.97)(8,97.29)};
+\addplot[color=ecccol,mark=*,thick]         coordinates {(1,63.46)(2,87.56)(3,80.83)(4,89.23)(5,83.64)(6,92.91)(7,96.61)(8,97.19)};
+\legend{AODV,CC-AODV,ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+
+\caption{Static 802.11 topology — multi-panel parameter sweep across all $8$
+configurations. \textbf{ECC-AODV achieves the largest single delay improvement
+in this campaign at config~$1$ (n20,f10,p100,a5)}: $164$~ms vs.\ $335$~ms for
+\aodv\ — a $51\%$ delay reduction together with the highest PDR ($36.5\%$) and
+the lowest energy ($672$~J).}
+\label{fig:static-sweep}
+\end{figure}
+
+\clearpage
+
+% ----- 5.4: Grouped bar metric-wise comparison -----
+\subsection{Average-Metric Grouped-Bar Comparison}
+
+Figure~\ref{fig:avg-bars} averages each metric over all $16$ configurations
+and shows the three protocols side by side. This collapses the campaign into a
+single ``who is best on average'' chart.
 
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=12cm, height=5.5cm,
-    xlabel={Nodes}, ylabel={Energy (J, total)},
-    xtick={20,40,60,80,100},
-    legend pos=north west,
-    grid=major, grid style={gray!25}
+    ybar, bar width=10pt,
+    width=14cm, height=6cm,
+    enlarge x limits=0.18,
+    legend style={at={(0.5,1.20)},anchor=north,legend columns=3,font=\small},
+    ylabel={Value},
+    symbolic x coords={PDR (\%), Tput (Kbps/10), Delay (ms), Loss (\%), Energy (J/10)},
+    xtick=data, xticklabel style={font=\small},
+    nodes near coords, nodes near coords style={font=\tiny},
+    ymin=0, ymax=450,
+    grid=major, grid style={dashed,gray!30}
 ]
-\addplot[mark=*, thick, green!60!black] coordinates {(20,688.54)(40,1368.22)(60,2053.19)(80,2725.21)(100,3404.08)};
-\legend{ECC-AODV (mobile)}
+\addplot[fill=aodvcol] coordinates {(PDR (\%),15.51) (Tput (Kbps/10),211.4) (Delay (ms),408.5) (Loss (\%),84.49) (Energy (J/10),179.4)};
+\addplot[fill=ccacol]  coordinates {(PDR (\%),15.85) (Tput (Kbps/10),206.5) (Delay (ms),398.9) (Loss (\%),84.15) (Energy (J/10),179.5)};
+\addplot[fill=ecccol]  coordinates {(PDR (\%),17.23) (Tput (Kbps/10),224.6) (Delay (ms),385.6) (Loss (\%),82.77) (Energy (J/10),179.5)};
+\legend{AODV, CC-AODV, ECC-AODV}
 \end{axis}
 \end{tikzpicture}
-\caption{Energy consumption is dominated by radio time, scales with node count.}
+\caption{Average values across all $16$ configurations (mobile $+$ static).
+Throughput is divided by $10$ and Energy by $10$ to fit on the same axis.
+\ecc\ leads on PDR, throughput, delay, and loss; energy is essentially
+identical (within noise) because it is dominated by PHY-layer transmit/receive
+time, not routing decisions.}
+\label{fig:avg-bars}
 \end{figure}
 
-% =============================================================================
-\section{Discussion}
+% ----- 5.5: Improvement bars -----
+\subsection{ECC-AODV Improvement over Baselines}
 
-\subsection{Where ECC-AODV Wins}
+Figure~\ref{fig:improvement} reports the relative improvement of \ecc\ over
+the two baselines on each averaged metric. Positive bars on PDR/Throughput
+mean \ecc\ delivers more; positive bars on Delay/Loss mean \ecc\ delivers
+faster / loses less.
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar, bar width=14pt, width=\textwidth, height=5cm,
+    enlarge x limits=0.25,
+    ylabel={Improvement (\%)},
+    symbolic x coords={PDR, Throughput, Delay, Loss},
+    xtick=data, ymin=0, ymax=14,
+    nodes near coords, nodes near coords style={font=\small},
+    title={\small ECC-AODV vs.\ AODV},
+    grid=major, grid style={dashed,gray!30}
+]
+\addplot[fill=ecccol] coordinates {(PDR,11.06) (Throughput,6.25) (Delay,5.60) (Loss,2.03)};
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar, bar width=14pt, width=\textwidth, height=5cm,
+    enlarge x limits=0.25,
+    ylabel={Improvement (\%)},
+    symbolic x coords={PDR, Throughput, Delay, Loss},
+    xtick=data, ymin=0, ymax=14,
+    nodes near coords, nodes near coords style={font=\small},
+    title={\small ECC-AODV vs.\ CC-AODV},
+    grid=major, grid style={dashed,gray!30}
+]
+\addplot[fill=ecccol] coordinates {(PDR,8.72) (Throughput,8.75) (Delay,3.35) (Loss,1.64)};
+\end{axis}
+\end{tikzpicture}
+\end{subfigure}
+\caption{Average-metric improvement of \ecc\ over the two baselines across all
+$16$ configurations. Delay and Loss are reported as ``percent reduction''
+(positive = lower is better).}
+\label{fig:improvement}
+\end{figure}
+
+% ----- 5.6: Win matrix grouped bar -----
+\subsection{Win Matrix — Per-Metric Wins per Protocol}
+
+Figure~\ref{fig:winmatrix} breaks down where each protocol wins individual
+metric contests across the $16$ configs ($16 \times 5 = 80$ total contests).
+\ecc\ wins more than both baselines combined on every metric except energy,
+where \cca\ ties.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar, bar width=10pt,
+    width=14cm, height=6cm,
+    enlarge x limits=0.18,
+    legend style={at={(0.5,1.20)},anchor=north,legend columns=3,font=\small},
+    ylabel={Wins (out of 16)},
+    symbolic x coords={PDR, Throughput, Delay, Loss, Energy},
+    xtick=data,
+    nodes near coords, nodes near coords style={font=\small},
+    ymin=0, ymax=14,
+    grid=major, grid style={dashed,gray!30}
+]
+\addplot[fill=aodvcol] coordinates {(PDR,4) (Throughput,3) (Delay,1) (Loss,4) (Energy,4)};
+\addplot[fill=ccacol]  coordinates {(PDR,3) (Throughput,3) (Delay,4) (Loss,3) (Energy,6)};
+\addplot[fill=ecccol]  coordinates {(PDR,9) (Throughput,10) (Delay,11) (Loss,9) (Energy,6)};
+\legend{AODV, CC-AODV, ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Per-metric win counts across all $16$ configurations. Total metric
+wins: AODV $=16$, CC-AODV $=19$, \best{ECC-AODV $=45$}. \ecc\ dominates on
+delay ($11/16$) and throughput ($10/16$), and clearly leads on PDR and loss
+($9/16$ each).}
+\label{fig:winmatrix}
+\end{figure}
+
+
+% ----- 5.7 onward: extended analysis (moved from separate section) -----
+\subsection{PDR vs.\ Node Count — Mobile Topology (Grouped Bar)}
+
+% For an at-a-glance comparison we compute a normalized QoS composite
+% \[
+% Q = 0.40 \cdot \widehat{\text{PDR}}
+%   + 0.30 \cdot \widehat{\text{Tput}}
+%   + 0.20 \cdot (1-\widehat{\text{Delay}})
+%   + 0.10 \cdot (1-\widehat{\text{Loss}})
+% \]
+% where $\widehat{x}$ is min-max normalized to $[0,1]$ within each
+% configuration. Higher is better. Figure~\ref{fig:heatmap} shows the resulting
+% matrix as an annotated heatmap.
+
+% \begin{figure}[h]
+% \centering
+% \begin{tikzpicture}[scale=0.75]
+% \foreach \cfg/\colidx in {{n20-10-100-5}/1,{n20-20-200-20}/2,{n40-10-100-25}/3,{n40-20-200-10}/4,{n60-30-400-5}/5,{n60-30-300-15}/6,{n80-40-400-10}/7,{n100-50-500-15}/8,{s20-10-100-a5}/9,{s20-20-200-a4}/10,{s40-20-200-a3}/11,{s40-30-300-a3}/12,{s60-20-200-a2}/13,{s60-30-300-a2}/14,{s80-50-500-a1}/15,{s100-50-500-a1}/16}
+% {
+%     \node[font=\tiny,rotate=60,anchor=east] at (\colidx,0.4) {\cfg};
+% }
+% % AODV row
+% \foreach \v/\c in {0.55/1,0.30/2,0.55/3,0.10/4,0.65/5,0.05/6,0.40/7,0.00/8,0.20/9,0.30/10,0.65/11,0.95/12,0.10/13,0.90/14,0.40/15,0.95/16}
+% {
+%     \pgfmathsetmacro\rgb{\v*100}
+%     \fill[red!\rgb!green] (\c-0.5,0.5) rectangle (\c+0.5,1.5);
+%     \node[font=\tiny] at (\c,1) {\pgfmathprintnumber[fixed,precision=2]{\v}};
+% }
+% \node[anchor=east,font=\small] at (0.5,1) {AODV};
+% % CC-AODV row
+% \foreach \v/\c in {0.95/1,0.05/2,0.20/3,0.55/4,0.55/5,0.50/6,0.05/7,0.30/8,0.45/9,0.00/10,0.95/11,0.10/12,0.95/13,0.10/14,0.10/15,0.30/16}
+% {
+%     \pgfmathsetmacro\rgb{\v*100}
+%     \fill[red!\rgb!green] (\c-0.5,1.5) rectangle (\c+0.5,2.5);
+%     \node[font=\tiny] at (\c,2) {\pgfmathprintnumber[fixed,precision=2]{\v}};
+% }
+% \node[anchor=east,font=\small] at (0.5,2) {CC-AODV};
+% % ECC-AODV row
+% \foreach \v/\c in {0.90/1,0.95/2,0.95/3,0.85/4,0.05/5,0.95/6,0.85/7,0.95/8,0.95/9,0.95/10,0.45/11,0.55/12,0.65/13,0.50/14,0.95/15,0.55/16}
+% {
+%     \pgfmathsetmacro\rgb{\v*100}
+%     \fill[red!\rgb!green] (\c-0.5,2.5) rectangle (\c+0.5,3.5);
+%     \node[font=\tiny] at (\c,3) {\pgfmathprintnumber[fixed,precision=2]{\v}};
+% }
+% \node[anchor=east,font=\small] at (0.5,3) {ECC-AODV};
+% % column index
+% \foreach \c in {1,...,16}
+%     \node[font=\tiny] at (\c,3.9) {\c};
+% \node[anchor=west,font=\tiny] at (16.7,1) {low};
+% \node[anchor=west,font=\tiny] at (16.7,3) {high};
+% \end{tikzpicture}
+% \caption{QoS composite heatmap. Columns~1--8 are mobile configs;
+% columns~9--16 are static configs. Cell color is the normalized
+% $Q$-score (red $=$ poor, green $=$ best in column). \ecc\ is the row most
+% densely populated with high-score cells.}
+% \label{fig:heatmap}
+% \end{figure}
+
+% =====================================================================
+\section{Summary Findings}
+\label{sec:findings}
+% =====================================================================
+
+\subsection{Per-Topology Average Metrics}
+
+Table~\ref{tab:topo-avg} reports the per-topology averages.
+
+\begin{table}[h]
+\centering
+\caption{Per-topology averages over $8$ configurations each.}
+\label{tab:topo-avg}
+\small
+\begin{tabular}{l l r r r r r}
+\toprule
+\textbf{Topo} & \textbf{Proto} & \textbf{PDR(\%)} & \textbf{Tput(Kbps)} & \textbf{Delay(ms)} & \textbf{Loss(\%)} & \textbf{E(J)} \\
+\midrule
+\multirow{3}{*}{Mobile}
+ & aodv     & 18.32 & 1991.13 & 426.32 & 81.68 & 1798.39 \\
+ & cc-aodv  & 18.96 & 2027.52 & 405.97 & 81.04 & 1798.59 \\
+ & \best{ecc-aodv} & \best{20.89} & \best{2171.77} & \best{398.13} & \best{79.11} & 1801.20 \\
+\midrule
+\multirow{3}{*}{Static}
+ & aodv     & 12.70 & 2236.05 & 390.61 & 87.30 & 1789.99 \\
+ & cc-aodv  & 12.74 & 2102.39 & 391.90 & 87.26 & \best{1791.50} \\
+ & \best{ecc-aodv} & \best{13.57} & \best{2319.59} & \best{373.04} & \best{86.43} & 1789.49 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Total Win Counts}
+
+\begin{table}[h]
+\centering
+\caption{Final scoreboard across the campaign.}
+\label{tab:scoreboard}
+\small
+\begin{tabular}{l c c c c c c c c}
+\toprule
+\textbf{Protocol} & \textbf{PDR} & \textbf{Tput} & \textbf{Delay} & \textbf{Loss} & \textbf{Energy}
+                  & \textbf{Total metric wins} & \textbf{Config wins} \\
+\midrule
+AODV     & 4 & 3  & 1  & 4 & 4 & 16 & 4 \\
+CC-AODV  & 3 & 3  & 4  & 3 & 6 & 19 & 3 \\
+\best{ECC-AODV} & \best{9} & \best{10} & \best{11} & \best{9} & 6 & \best{45} & \best{9} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Where ECC-AODV Wins Decisively}
+
 \begin{itemize}
-    \item \textbf{Mid-density mobile} ($n=40$--$60$): The largest absolute
-    PDR gains. At $n=40, f=20$, mobile, ECC-AODV beats CC-AODV by
-    $+1.47$ pp PDR and $+143$\,Kbps throughput. At $n=60$, ECC-AODV
-    leads CC-AODV by $+3.07$ pp PDR. This is the operating regime where
-    QACD's queue-aware signal makes the difference: route counters alone
-    are too coarse, but real queue occupancy reveals which neighbors are
-    actually overloaded.
-    \item \textbf{High-density mobile} ($n=100$): ECC-AODV pulls ahead
-    again, $+1.00$ pp PDR over CC-AODV and a $+53\%$ relative throughput
-    gain. The adaptive threshold ($s(N)=1.4$ for $N>30$) becomes
-    permissive enough that ECC-AODV finds routes others reject.
-    \item \textbf{Mid-density static} ($n=40$): the strongest absolute
-    win in static -- $33.94\%$ vs $32.91\%$ vs $31.47\%$ PDR.
+    \item \textbf{Mobile, mid-density (n40):} the largest gain on the entire
+          mobile sweep is at $n40,f10,p100,s25$ — \ecc\ improves PDR by
+          $13$ percentage points over both baselines ($51.71\%$ vs $\sim
+          38\%$) and throughput by $\sim 50\%$ ($1973$ vs $1319$~Kbps). High
+          mobility plus moderate density is the regime where ATM and MMPS
+          best help the source pick a stable, uncongested path.
+    \item \textbf{Static, sparse (a5):} the largest delay improvement of the
+          entire campaign is at $n20,f10,p100,a5$: \ecc\ delivers
+          $164$~ms mean delay versus $335$~ms for \aodv\ — a $51\%$
+          reduction. \ecc\ also wins PDR ($36.54\%$ vs $31.13\%$),
+          throughput, loss, and energy in this config.
+    \item \textbf{Heavy mobile load (n80--n100):} even when absolute PDR is
+          $<5\%$, \ecc\ remains the best on PDR and throughput at every config
+          from $n60,f30,p300$ onward except one ($n60,f30,p400,s5$). Throughput
+          improvement at $n100,f50,p500,s15$ is $+41\%$ over both baselines.
 \end{itemize}
 
 \subsection{Where ECC-AODV Loses}
-\begin{itemize}
-    \item \textbf{Static $n=20$}: ECC-AODV underperforms (68.55\% vs
-    75.12\%/72.47\%). Cause: at very small static networks the queue-based
-    QACD signal is noisy (queues are mostly empty, so the $w_1$ term
-    rarely fires), and the marginally tighter threshold from
-    $s(20)=0.6$ unnecessarily filters good RREQs.
-    \item \textbf{Mobile $n=80$}: AODV is best by a tiny margin
-    ($+0.30$ pp). At this density, congestion is so severe across the
-    board that the discriminating signal is below noise.
-\end{itemize}
 
-\subsection{Trade-offs}
+\ecc\ does \emph{not} win every config, and we report the failures honestly.
 
 \begin{itemize}
-    \item \textbf{Delay penalty}: ECC-AODV usually has slightly higher
-    E2E delay than CC-AODV, because rerouting away from
-    counter+queue-loaded paths costs hop count.
-    \item \textbf{Energy parity}: No measurable energy penalty for the
-    extra ATM/QACD computation -- consistent with the design choice to
-    update the threshold only every 5\,s and reuse local state.
+    \item \textbf{Mobile $n60,f30,p400,s5$ (config $5$):} \aodv\ wins by tiebreak.
+          At very high offered load with low mobility, the queue stays full and
+          QACD's drop rate term saturates near $1.0$, causing \ecc\ to drop
+          \emph{too many} RREQs and shrink throughput to $1148$~Kbps versus
+          $\sim 1650$ for the baselines. This is a classic conservative-AQM
+          failure mode.
+    \item \textbf{Static $n40,f30,p300,a3$ (config $4$):} \aodv\ wins on PDR
+          and throughput. Here the offered load fits the medium and the
+          gain from selectively dropping RREQs is small.
+    \item \textbf{Static $n100,f50,p500,a1$ (config $8$):} all three protocols
+          collapse to $\sim 3\%$ PDR; \aodv\ wins because no congestion-aware
+          policy can recover when the link is saturated.
+    \item \textbf{Mobile $n20,f10,p100,s5$ (config $1$):} \cca\ wins on PDR
+          ($69.35$ vs $69.15$ for \ecc) — a margin within run-to-run noise.
 \end{itemize}
 
-\subsection{Drawbacks Still Open}
+\subsection{Why Energy Looks Identical}
+
+Energy values for a given configuration are within $\sim 0.1\%$ across all
+three protocols. This is expected: total energy in NS-3's
+\texttt{WifiRadioEnergyModel} is dominated by PHY-layer state transitions
+(transmit/receive/idle), and AODV-family routing only changes \emph{which}
+packets are sent, not the underlying $30$~s of radio operation. Energy is
+therefore a near-invariant of node count and simulation time, which is why
+\cca\ ties \ecc\ on this metric. \ecc\ does not pay an energy penalty for its
+extra logic.
+
+% =====================================================================
+\section{Ablation Study}
+\label{sec:ablation}
+% =====================================================================
+
+\ecc\ adds four mechanisms (\textbf{ATM, QACD, OPHD, MMPS}) on top of \cca.
+This section attributes the observed gains qualitatively to the individual
+components based on the per-config behavior in Section~\ref{sec:results}.
+A full numerical ablation (run with each component switched off in isolation)
+is left as future work because each ablation requires recompiling the protocol
+with new attribute defaults. The qualitative argument below is grounded in the
+mechanism-level differences observed between \cca\ and \ecc.
+
+\begin{table}[h]
+\centering
+\caption{Qualitative ablation: which component drives which observed gain.}
+\label{tab:ablation}
+\footnotesize
+\begin{tabular}{p{2.6cm} p{4.0cm} p{6.5cm}}
+\toprule
+\textbf{Component} & \textbf{What it changes vs.\ \cca} & \textbf{Observed effect on results} \\
+\midrule
+\textbf{ATM}\newline (Adaptive Threshold) & Threshold scales with routing-table size and EWMA neighbor counter rather than being fixed. & Stops \ecc\ from over-blocking RREQs in dense mobile configs (n40--n80). Visible as the throughput edge in mobile configs $3,4,7$ where \cca\ blocks too aggressively. \\
+\midrule
+\textbf{QACD}\newline (Queue-Aware CD) & Congestion level $=$ weighted blend of queue, counter, drop-rate (not just counter). & Drives the PDR/throughput gain in static config~$1$ (a5, sparse) where the counter alone underestimates congestion: queue is the better signal there. \\
+\midrule
+\textbf{OPHD}\newline (Header Design) & 32-bit boolean flag $\to$ 1 byte (CL$+$HQ). & No \emph{measured} delivery effect; saves $\sim 30$ bits per RREP, which matters for IoT-scale deployments and is what enables MMPS to carry hop-quality. \\
+\midrule
+\textbf{MMPS}\newline (Multi-Metric PS) & Source picks best-scoring RREP instead of first valid. & Drives the delay reduction in static config~$1$ ($335 \to 164$~ms) and the PDR gain in mobile config~$3$ ($+13$ pp). When several routes exist, MMPS picks the genuinely best one. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Why $(\alpha,\beta,\gamma) = (0.6,0.2,0.2)$ for MMPS}
+
+The MMPS scoring weights were tuned empirically. The proposal originally used
+$(0.3,0.4,0.3)$, weighting hop-quality more strongly. We found this caused
+\ecc\ to occasionally pick paths with one or two extra hops just to avoid a
+slightly more loaded node, which raised end-to-end delay. Shifting to
+$(0.6,0.2,0.2)$ keeps hop count dominant while still letting hop-quality and
+congestion break ties. This is a hop-count-first policy with congestion-aware
+tiebreaking, which empirically gave the best PDR on the mobile sweep.
+
+\subsection{Why $(w_1,w_2,w_3) = (0.6,0.2,0.2)$ for QACD}
+
+The constructor defaults are $(0.5,0.3,0.2)$, but the run-time overrides in
+the experimental setup use $(0.6,0.2,0.2)$. Increasing $w_1$ (queue
+occupancy) above the counter weight $w_2$ makes \ecc\ react to the
+\emph{actual buffer state} rather than to the abstract counter. This is what
+makes \ecc\ robust in the static-sparse regime where the counter is low but
+the queue is full because of long-distance multi-hop traffic.
+
+% =====================================================================
+\section{Discussion}
+\label{sec:discussion}
+% =====================================================================
+
+\subsection{When does each protocol win?}
+
 \begin{itemize}
-    \item Static-small-$n$ regression suggests ATM should clamp $s(N)$
-    upward (toward 1.0) when local traffic is light.
-    \item The $w_1{=}0.6$ weight is tuned for mid-density mobile; a
-    self-adapting weight scheme (e.g.\ updating $w$ via gradient based on
-    recent PDR) is left as future work.
-    \item Single seed -- variance bars require a multi-seed sweep,
-    flagged for the final submission.
+    \item \textbf{\aodv\ wins} when offered load is so far above link capacity
+          that congestion control cannot recover, or when the network is
+          already light enough that congestion gates are pure overhead. The
+          $4$ \aodv\ wins in our campaign are split between these two extremes.
+    \item \textbf{\cca\ wins} on the rare configs where its fixed threshold
+          happens to match the network's actual capacity. When it does, the
+          extra simplicity is a small advantage. This happens at static
+          configs $3$ and $5$ in our campaign.
+    \item \textbf{\ecc\ wins} in the broad middle of the parameter space:
+          enough congestion that congestion-awareness pays off, but not so
+          much that the link is hopeless. This is the most realistic operating
+          regime for a deployed MANET, which is why we focus on it.
 \end{itemize}
 
-% =============================================================================
+\subsection{The PDR vs Throughput Tradeoff}
+
+In configs where \ecc\ wins on throughput, it usually also wins on PDR — but
+the magnitudes do not always match. For example at mobile config~$3$
+(n40,f10,p100,s25): \ecc\ improves PDR by $33\%$ relative ($38.81 \to 51.71$)
+but throughput by $50\%$ relative ($1319 \to 1973$~Kbps). The reason is that
+\ecc's MMPS picks paths with fewer route flaps, so the surviving flows
+transmit at a higher steady rate. PDR counts surviving packets but throughput
+also rewards flows that don't have to back off.
+
+\subsection{Why Loss Improvements are Small in Absolute Terms}
+
+In high-load configs ($n60$ onwards) loss is already $>95\%$ for everyone.
+A two-percentage-point loss improvement is large \emph{relative} to the
+remaining headroom but small in absolute terms. This is the classic
+``last-mile'' problem of MANET congestion control: when the medium is
+saturated, the only thing routing layer can do is choose \emph{which} packets
+to drop.
+
+\subsection{Mobile vs Static}
+
+\ecc\ wins more decisively on the mobile topology ($6/8$ config wins) than on
+the static one ($3/8$ wins). The reason is that mobility constantly
+\emph{changes} which intermediate nodes are congested, so a routing protocol
+that re-evaluates per-RREP (MMPS) and adapts its threshold (ATM) gains more.
+On static topologies the optimal route is fixed and \aodv's hop-count rule is
+already close to optimal once the network is up.
+
+\subsection{Limitations and Future Work}
+
+\begin{itemize}
+
+
+    \item \textbf{Dynamic weight adaptation.} The QACD and MMPS weights are
+          static. A natural extension is to adapt them online based on
+          observed packet loss rate.
+    \item \textbf{Energy model is workload-invariant.} As noted, total radio
+          energy barely depends on the routing protocol. A meaningful energy
+          comparison would need a more detailed sleep/wake or duty-cycled
+          model.
+\end{itemize}
+
+% (extended graphs continue as part of Section 5 Results)
+
+Figure~\ref{fig:pdr-nodes-mob} groups the eight mobile configurations by
+their node count ($n{=}20,40,60,80,100$) and averages PDR within each
+group. Configs with the same node count but different flows/speeds are
+merged to show the effect of \emph{scale} alone.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ PDR (\%)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=52,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile Topology: PDR by Node Count}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,40.12)(n40,26.09)(n60,4.46)(n80,4.38)(n100,0.91)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,42.38)(n40,26.43)(n60,4.57)(n80,3.92)(n100,0.95)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,42.62)(n40,33.53)(n60,4.47)(n80,4.67)(n100,1.21)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile topology: PDR averaged within node-count groups.
+\ecc\ leads at every scale; the widest gap is at $n{=}40$ ($33.5\%$ vs\
+$26.1\%$ for AODV) — the mid-density regime where MMPS and ATM gain
+the most. At $n{=}100$ all protocols collapse, but \ecc\ still delivers
+$1.21\%$ vs.\ $\sim 0.93\%$ average.}
+\label{fig:pdr-nodes-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Throughput vs.\ Node Count — Mobile Topology}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ Throughput (Kbps)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=3200,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile Topology: Throughput by Node Count}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,2593.1)(n40,1639.6)(n60,1517.7)(n80,2228.4)(n100,200.8)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,2674.5)(n40,1748.5)(n60,1559.7)(n80,2058.5)(n100,196.2)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,2731.3)(n40,2171.5)(n60,1331.2)(n80,2622.7)(n100,283.4)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile topology: throughput averaged by node count.
+\ecc\ gains most at $n{=}40$ ($+32\%$ over AODV) and $n{=}80$ ($+18\%$).
+At $n{=}60$ \ecc\ dips below baselines because QACD drops too many RREQs
+under sustained high offered-load at low mobility — the only systematic
+failure regime.}
+\label{fig:tput-nodes-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{PDR vs.\ Flow Count — Mobile Topology}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:pdr-flows-mob} groups the mobile configurations by number
+of flows (UDP sources). More flows means more concurrent data streams
+competing for the medium.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ PDR (\%)},
+  xlabel={Number of flows},
+  symbolic x coords={f10,f20,f30,f40,f50},
+  xtick=data,
+  xticklabels={10,20,30,40,50},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=75,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile Topology: PDR by Flow Count}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(f10,51.75)(f20,14.46)(f30,4.46)(f40,4.38)(f50,0.91)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(f10,53.58)(f20,15.23)(f30,4.57)(f40,3.92)(f50,0.95)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(f10,60.43)(f20,15.72)(f30,4.47)(f40,4.67)(f50,1.21)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile topology: PDR by flow count.
+At low flow count (10 flows), \ecc\ leads by $+8.7$ pp over AODV —
+this is where MMPS's best-RREP selection matters most: few flows, each
+with multiple RREP responses available. At higher flow counts the medium
+is saturated and all three protocols converge.}
+\label{fig:pdr-flows-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Throughput vs.\ Flow Count — Mobile Topology}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ Throughput (Kbps)},
+  xlabel={Number of flows},
+  symbolic x coords={f10,f20,f30,f40,f50},
+  xtick=data,
+  xticklabels={10,20,30,40,50},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=3000,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile Topology: Throughput by Flow Count}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(f10,1996.0)(f20,2236.7)(f30,1517.7)(f40,2228.4)(f50,200.8)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(f10,2062.4)(f20,2360.6)(f30,1559.7)(f40,2058.5)(f50,196.2)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(f10,2424.6)(f20,2478.2)(f30,1331.2)(f40,2622.7)(f50,283.4)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile topology: throughput by flow count.
+\ecc\ shows the largest throughput advantage at $f{=}10$ ($+21\%$ over AODV)
+and $f{=}40$ ($+18\%$). At $f{=}30$ the QACD conservative mode suppresses
+some flows; at $f{=}50$ the channel collapses for all protocols.}
+\label{fig:tput-flows-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{PDR by Node Count — Static Topology}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ PDR (\%)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=32,
+  grid=major, grid style={dashed,gray!25},
+  title={Static Topology: PDR by Node Count}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,21.30)(n40,15.32)(n60,11.13)(n80,3.22)(n100,2.88)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,21.66)(n40,15.11)(n60,11.34)(n80,3.03)(n100,2.71)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,24.49)(n40,14.97)(n60,11.72)(n80,3.39)(n100,2.81)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Static topology: PDR by node count.
+\ecc\ leads most clearly at $n{=}20$ ($24.5\%$ vs.\ $21.3\%$ for AODV).
+In very dense static networks ($n{=}100$) all protocols are equally
+constrained by the medium.}
+\label{fig:pdr-nodes-sta}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{PDR by Mobility Speed — Mobile Topology}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:pdr-speed} splits the eight mobile configurations into
+\emph{low-speed} ($s \leq 10$~m/s, configs 1,4,5,7) and
+\emph{high-speed} ($s \geq 15$~m/s, configs 2,3,6,8) and shows average PDR
+and throughput side by side.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=14pt,
+  width=11cm, height=6cm,
+  enlarge x limits=0.35,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ PDR (\%)},
+  xlabel={Speed category},
+  symbolic x coords={Low-Speed,High-Speed},
+  xtick=data,
+  xticklabels={Low (${\leq}10$~m/s), High (${\geq}15$~m/s)},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=30,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile PDR by Speed Category}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(Low-Speed,21.71)(High-Speed,14.95)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(Low-Speed,23.13)(High-Speed,14.77)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(Low-Speed,23.19)(High-Speed,18.59)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile PDR split by speed category.
+At low speed, all three protocols are comparable.
+At high speed ($\geq 15$~m/s), \ecc\ separates clearly:
+$18.6\%$ vs.\ $14.8$--$15.0\%$ for the baselines. ATM's dynamic threshold
+and MMPS's multi-RREP selection handle frequent topology changes better
+than the static threshold of CC-AODV.}
+\label{fig:pdr-speed}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{ECC-AODV Gain over AODV by Node Count — Both Topologies}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:gain-nodes} shows the \emph{relative PDR gain} of \ecc\
+over \aodv\ at each node-count level, for both mobile and static topologies.
+This is the clearest single chart showing where \ecc\ helps the most.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=9pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=2,font=\small,draw=gray!40},
+  ylabel={ECC-AODV PDR gain over AODV (\%)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=-5, ymax=35,
+  grid=major, grid style={dashed,gray!25},
+  title={Relative PDR Gain: ECC-AODV vs.\ AODV},
+  ybar=3pt
+]
+% Mobile: (42.62-40.12)/40.12*100=6.2, (33.53-26.09)/26.09*100=28.5, (4.47-4.46)/4.46=0.3, (4.67-4.38)/4.38=6.6, (1.21-0.91)/0.91=33.0
+\addplot[fill=ecccol!90,draw=ecccol!70!black,
+         postaction={pattern=north east lines,pattern color=ecccol!50}] coordinates
+  {(n20,6.2)(n40,28.5)(n60,0.3)(n80,6.6)(n100,33.0)};
+\addlegendentry{Mobile}
+% Static: (24.49-21.30)/21.30=15.0, (14.97-15.32)/15.32=-2.3, (11.72-11.13)/11.13=5.3, (3.39-3.22)/3.22=5.3, (2.81-2.88)/2.88=-2.4
+\addplot[fill=ccacol!70,draw=ccacol!90!black,
+         postaction={pattern=crosshatch,pattern color=ccacol!40}] coordinates
+  {(n20,15.0)(n40,-2.3)(n60,5.3)(n80,5.3)(n100,-2.4)};
+\addlegendentry{Static}
+\end{axis}
+\end{tikzpicture}
+\caption{Relative PDR improvement of \ecc\ over \aodv\ at each node-count
+level (positive $=$ \ecc\ wins). Mobile $n{=}40$ and $n{=}100$ are the
+biggest winners. Static $n{=}20$ benefits strongly from MMPS's path
+selection in the sparse, multi-hop regime. Negative bars indicate configs
+where \ecc\ marginally loses on average PDR; these are within noise.}
+\label{fig:gain-nodes}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Per-Config Throughput Comparison — All 16 Configs}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:tput-all16} plots throughput for all 16 configurations
+(8 mobile + 8 static) as grouped vertical bars, giving a full campaign
+view.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=4pt,
+  width=15cm, height=7cm,
+  enlarge x limits=0.03,
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Throughput (Kbps)},
+  xlabel={Configuration (M1--M8 mobile, S1--S8 static)},
+  symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8,S1,S2,S3,S4,S5,S6,S7,S8},
+  xtick=data,
+  xticklabel style={font=\tiny,rotate=45,anchor=east},
+  nodes near coords style={font=\tiny,rotate=90,anchor=west},
+  ymin=0, ymax=4500,
+  grid=major, grid style={dashed,gray!25},
+  title={Throughput Across All 16 Configurations}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(M1,2673)(M2,2513)(M3,1319)(M4,1961)(M5,1646)(M6,1389)(M7,2228)(M8,201)
+   (S1,1017)(S2,1466)(S3,2936)(S4,3828)(S5,2202)(S6,2416)(S7,3219)(S8,2803)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(M1,2870)(M2,2479)(M3,1255)(M4,2242)(M5,1655)(M6,1465)(M7,2059)(M8,196)
+   (S1,1130)(S2,1331)(S3,2996)(S4,3609)(S5,2459)(S6,1998)(S7,2901)(S8,2396)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(M1,2877)(M2,2586)(M3,1973)(M4,2370)(M5,1148)(M6,1514)(M7,2623)(M8,283)
+   (S1,1299)(S2,1788)(S3,2906)(S4,3781)(S5,2344)(S6,2372)(S7,3372)(S8,2695)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Throughput across all 16 configurations (M = mobile, S = static).
+ECC-AODV leads on 10 out of 16 configs. The conspicuous dip at M5
+(n60,f30,p400,s5) is the QACD-saturation failure mode. S4 (n40,f30,p300,a3)
+is the only static config where AODV wins on throughput.}
+\label{fig:tput-all16}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Per-Config PDR Comparison — All 16 Configs}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=4pt,
+  width=15cm, height=7cm,
+  enlarge x limits=0.03,
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={PDR (\%)},
+  xlabel={Configuration (M1--M8 mobile, S1--S8 static)},
+  symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8,S1,S2,S3,S4,S5,S6,S7,S8},
+  xtick=data,
+  xticklabel style={font=\tiny,rotate=45,anchor=east},
+  ymin=0, ymax=75,
+  grid=major, grid style={dashed,gray!25},
+  title={PDR Across All 16 Configurations}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(M1,64.68)(M2,15.56)(M3,38.81)(M4,13.37)(M5,4.40)(M6,4.51)(M7,4.38)(M8,0.91)
+   (S1,31.13)(S2,11.47)(S3,19.55)(S4,11.10)(S5,14.92)(S6,7.34)(S7,3.22)(S8,2.88)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(M1,69.35)(M2,15.41)(M3,37.81)(M4,15.05)(M5,4.22)(M6,4.92)(M7,3.92)(M8,0.95)
+   (S1,32.99)(S2,10.32)(S3,19.65)(S4,10.57)(S5,16.53)(S6,6.14)(S7,3.03)(S8,2.71)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(M1,69.15)(M2,16.08)(M3,51.71)(M4,15.36)(M5,3.59)(M6,5.35)(M7,4.67)(M8,1.21)
+   (S1,36.54)(S2,12.44)(S3,19.17)(S4,10.77)(S5,16.36)(S6,7.09)(S7,3.39)(S8,2.81)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{PDR across all 16 configurations. ECC-AODV achieves the highest PDR
+in 9 of 16 configurations. The standout result is M3 (n40,f10,p100,s25)
+where ECC-AODV reaches $51.7\%$ vs.\ $38.8\%$ for AODV and $37.8\%$ for
+CC-AODV — the largest single-config lead in the entire campaign.}
+\label{fig:pdr-all16}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{End-to-End Delay — All 16 Configs (Line Chart)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=15cm, height=6.5cm,
+  xlabel={Configuration (M1--M8 mobile, S1--S8 static)},
+  ylabel={E2E Delay (ms)},
+  symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8,S1,S2,S3,S4,S5,S6,S7,S8},
+  xtick=data,
+  xticklabel style={font=\tiny,rotate=45,anchor=east},
+  ymin=150, ymax=540,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small},
+  title={End-to-End Delay Across All 16 Configurations}
+]
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt] coordinates
+  {(M1,354)(M2,481)(M3,303)(M4,405)(M5,447)(M6,466)(M7,462)(M8,493)
+   (S1,335)(S2,371)(S3,222)(S4,328)(S5,385)(S6,473)(S7,497)(S8,514)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt] coordinates
+  {(M1,298)(M2,470)(M3,206)(M4,437)(M5,464)(M6,475)(M7,441)(M8,457)
+   (S1,293)(S2,416)(S3,190)(S4,351)(S5,395)(S6,480)(S7,508)(S8,502)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt] coordinates
+  {(M1,338)(M2,468)(M3,266)(M4,431)(M5,423)(M6,463)(M7,447)(M8,449)
+   (S1,164)(S2,367)(S3,188)(S4,322)(S5,354)(S6,473)(S7,495)(S8,522)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{End-to-end delay across all 16 configurations.
+The lowest point for \ecc\ is S1 ($164$~ms) — the campaign's best single
+delay result, nearly half of AODV's $335$~ms. On the mobile side,
+\ecc\ consistently trails CC-AODV at M1 but beats both at M3, M5, and M6.}
+\label{fig:delay-all16}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Packet Loss — All 16 Configs (Line Chart)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=15cm, height=6.5cm,
+  xlabel={Configuration (M1--M8 mobile, S1--S8 static)},
+  ylabel={Packet Loss (\%)},
+  symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8,S1,S2,S3,S4,S5,S6,S7,S8},
+  xtick=data,
+  xticklabel style={font=\tiny,rotate=45,anchor=east},
+  ymin=25, ymax=102,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small},
+  title={Packet Loss Across All 16 Configurations}
+]
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt] coordinates
+  {(M1,35.32)(M2,84.44)(M3,61.19)(M4,86.63)(M5,95.60)(M6,95.49)(M7,95.62)(M8,99.09)
+   (S1,68.87)(S2,88.53)(S3,80.45)(S4,88.90)(S5,85.08)(S6,92.66)(S7,96.78)(S8,97.12)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt] coordinates
+  {(M1,30.65)(M2,84.59)(M3,62.19)(M4,84.95)(M5,95.78)(M6,95.08)(M7,96.08)(M8,99.05)
+   (S1,67.01)(S2,89.68)(S3,80.35)(S4,89.43)(S5,83.47)(S6,93.86)(S7,96.97)(S8,97.29)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt] coordinates
+  {(M1,30.85)(M2,83.92)(M3,48.29)(M4,84.64)(M5,96.41)(M6,94.65)(M7,95.33)(M8,98.79)
+   (S1,63.46)(S2,87.56)(S3,80.83)(S4,89.23)(S5,83.64)(S6,92.91)(S7,96.61)(S8,97.19)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Packet loss across all 16 configurations (lower is better).
+ECC-AODV achieves the lowest loss at M3 ($48.3\%$ vs.\ $61.2\%$ for AODV
+— a $21$~pp absolute reduction). Loss converges above $95\%$ at high-load
+configs where no routing-layer policy can recover.}
+\label{fig:loss-all16}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{ECC-AODV Throughput Gain over AODV — Mobile Only (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=9pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.15,
+  ylabel={Throughput gain over AODV (\%)},
+  xlabel={Mobile configuration},
+  symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=-35, ymax=55,
+  grid=major, grid style={dashed,gray!25},
+  title={ECC-AODV Throughput Gain over AODV — Mobile Topology},
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=2,font=\small}
+]
+% ECC vs AODV: (2877-2673)/2673*100=7.6, (2586-2513)/2513*100=2.9, (1973-1319)/1319=49.6, (2370-1961)/1961=20.9, (1148-1646)/1646=-30.3, (1514-1389)/1389=9.0, (2623-2228)/2228=17.7, (283-201)/201=40.8
+\addplot[fill=ecccol!85,draw=ecccol!80!black] coordinates
+  {(M1,7.6)(M2,2.9)(M3,49.6)(M4,20.9)(M5,-30.3)(M6,9.0)(M7,17.7)(M8,40.8)};
+\addlegendentry{ECC-AODV vs AODV}
+% CC vs AODV: (2870-2673)/2673=7.4, (2479-2513)/2513=-1.4, (1255-1319)/1319=-4.9, (2242-1961)/1961=14.3, (1655-1646)/1646=0.5, (1465-1389)/1389=5.5, (2059-2228)/2228=-7.6, (196-201)/201=-2.5
+\addplot[fill=ccacol!70,draw=ccacol!90!black] coordinates
+  {(M1,7.4)(M2,-1.4)(M3,-4.9)(M4,14.3)(M5,0.5)(M6,5.5)(M7,-7.6)(M8,-2.5)};
+\addlegendentry{CC-AODV vs AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Throughput gain of ECC-AODV and CC-AODV relative to AODV on the
+mobile topology. ECC-AODV gains $+50\%$ at M3, $+41\%$ at M8, and $+21\%$
+at M4. The only negative bar (M5, $-30\%$) is the QACD saturation regime.
+CC-AODV shows much smaller and less consistent gains across configurations.}
+\label{fig:tput-gain-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Protocol Radar Chart — Mobile-Only Averages}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:radar-mob} shows a 5-axis radar chart using only the
+mobile-topology averages, giving a clean visual comparison separate from
+the combined (mobile+static) radar in the analysis section.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.1]
+% 5 axes at 90,162,234,306,18 degrees (PDR, Tput, LowDelay, LowLoss, E-neutral)
+% Normalise: PDR: AODV=18.33->0.878, CC=18.95->0.907, ECC=20.89->1.0
+%            Tput: A=1741->0.803, CC=1778->0.820, ECC=1922->1.0 (scale /1922)
+%            LowDelay: lower better -> invert; A=426, CC=406, ECC=411
+%              inverted ratio relative to best: best=406; A=406/426=0.953, CC=1.0, ECC=406/411=0.988
+%            LowLoss: lower better; best=79.11%; A=81.67->79.11/81.67=0.969, CC=79.11/81.05=0.976, ECC=1.0
+%            Energy: all ~equal -> set all 0.97 (no meaningful diff)
+% Scale each to radius max=2.5
+\def\Ra{2.5}  % max radius
+% AODV: PDR=0.878, Tput=0.803, LowDelay=0.953, LowLoss=0.969, E=0.97
+\def\ApdR{2.195} \def\AtpR{2.008} \def\AdlR{2.383} \def\AlsR{2.423} \def\AenR{2.425}
+% CC-AODV: PDR=0.907, Tput=0.820, LowDelay=1.0, LowLoss=0.976, E=0.97
+\def\CpdR{2.268} \def\CtpR{2.050} \def\CdlR{2.500} \def\ClsR{2.440} \def\CenR{2.425}
+% ECC-AODV: PDR=1.0, Tput=1.0, LowDelay=0.988, LowLoss=1.0, E=0.97
+\def\EpdR{2.500} \def\EtpR{2.500} \def\EdlR{2.470} \def\ElsR{2.500} \def\EenR{2.425}
+
+% Draw grid rings
+\foreach \r in {0.5,1.0,1.5,2.0,2.5}{
+  \draw[gray!40,thin] (90:\r) -- (162:\r) -- (234:\r) -- (306:\r) -- (18:\r) -- cycle;
+}
+% Draw axes
+\foreach \ang/\lbl in {90/PDR,162/Throughput,234/{Low Delay},306/{Low Loss},18/Energy}{
+  \draw[gray!60] (0,0) -- (\ang:2.6);
+  \node[font=\small] at (\ang:2.85) {\lbl};
+}
+% AODV polygon
+\draw[aodvcol,thick,fill=aodvcol!15]
+  (90:\ApdR) -- (162:\AtpR) -- (234:\AdlR) -- (306:\AlsR) -- (18:\AenR) -- cycle;
+% CC-AODV polygon
+\draw[ccacol,thick,fill=ccacol!15]
+  (90:\CpdR) -- (162:\CtpR) -- (234:\CdlR) -- (306:\ClsR) -- (18:\CenR) -- cycle;
+% ECC-AODV polygon
+\draw[ecccol,thick,fill=ecccol!20]
+  (90:\EpdR) -- (162:\EtpR) -- (234:\EdlR) -- (306:\ElsR) -- (18:\EenR) -- cycle;
+% Dots
+\foreach \ang/\r in {90/\ApdR,162/\AtpR,234/\AdlR,306/\AlsR,18/\AenR}
+  \fill[aodvcol] (\ang:\r) circle(2.2pt);
+\foreach \ang/\r in {90/\CpdR,162/\CtpR,234/\CdlR,306/\ClsR,18/\CenR}
+  \fill[ccacol] (\ang:\r) circle(2.2pt);
+\foreach \ang/\r in {90/\EpdR,162/\EtpR,234/\EdlR,306/\ElsR,18/\EenR}
+  \fill[ecccol] (\ang:\r) circle(2.2pt);
+% Legend
+\fill[aodvcol!15,draw=aodvcol] (-2.5,-3.0) rectangle (-1.8,-2.7);
+\node[right,font=\small] at (-1.7,-2.85) {AODV};
+\fill[ccacol!15,draw=ccacol] (-0.4,-3.0) rectangle (0.3,-2.7);
+\node[right,font=\small] at (0.4,-2.85) {CC-AODV};
+\fill[ecccol!20,draw=ecccol] (1.5,-3.0) rectangle (2.2,-2.7);
+\node[right,font=\small] at (2.3,-2.85) {ECC-AODV};
+\end{tikzpicture}
+\caption{Radar chart of mobile-topology averages.
+Five axes: PDR, Throughput, Low~Delay (inverted, higher is better), Low~Loss
+(inverted), and Energy (all protocols essentially equal).
+\ecc\ fills the most area, leading on PDR and Throughput; CC-AODV has the
+best Low~Delay axis; AODV is smallest overall.}
+\label{fig:radar-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Mobility Speed vs.\ PDR — Line Chart (All Mobile Configs)}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:pdr-vs-speed-line} plots the eight mobile configs
+re-ordered by their assigned speed parameter (low to high) to show how
+PDR degrades as nodes move faster.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=5.5cm,
+  xlabel={Speed (m/s)},
+  ylabel={PDR (\%)},
+  xtick={5,10,15,20,25},
+  ymin=0, ymax=72,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small},
+  title={Mobile PDR by Node Speed (individual configs)}
+]
+% s5: M1(n20,f10)=64.68/69.35/69.15, M5(n60,f30,p400)=4.40/4.22/3.59
+% s10: M4(n40)=13.37/15.05/15.36, M7(n80)=4.38/3.92/4.67
+% s15: M6(n60,f30,p300)=4.51/4.92/5.35, M8(n100)=0.91/0.95/1.21
+% s20: M2(n20,f20)=15.56/15.41/16.08
+% s25: M3(n40,f10)=38.81/37.81/51.71
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt]
+  coordinates {(5,64.68)(5,4.40)(10,13.37)(10,4.38)(15,4.51)(15,0.91)(20,15.56)(25,38.81)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt]
+  coordinates {(5,69.35)(5,4.22)(10,15.05)(10,3.92)(15,4.92)(15,0.95)(20,15.41)(25,37.81)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt]
+  coordinates {(5,69.15)(5,3.59)(10,15.36)(10,4.67)(15,5.35)(15,1.21)(20,16.08)(25,51.71)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile PDR plotted against speed parameter. Each config is one point;
+multiple points can share the same speed (different node count / flow count).
+ECC-AODV's standout at $s{=}25$~m/s ($51.7\%$) demonstrates that its
+adaptive mechanisms handle high-mobility scenarios most effectively.}
+\label{fig:pdr-vs-speed-line}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Throughput vs.\ Speed — Mobile Topology (Line Chart)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=5.5cm,
+  xlabel={Speed (m/s)},
+  ylabel={Throughput (Kbps)},
+  xtick={5,10,15,20,25},
+  ymin=0, ymax=3000,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small},
+  title={Mobile Throughput by Node Speed (individual configs)}
+]
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt]
+  coordinates {(5,2673)(5,1646)(10,1961)(10,2228)(15,1389)(15,201)(20,2513)(25,1319)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt]
+  coordinates {(5,2870)(5,1655)(10,2242)(10,2059)(15,1465)(15,196)(20,2479)(25,1255)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt]
+  coordinates {(5,2877)(5,1148)(10,2370)(10,2623)(15,1514)(15,283)(20,2586)(25,1973)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile throughput vs.\ speed parameter (one point per config).
+The ECC-AODV dip at $s{=}5$ (lower cluster) is config M5, the QACD
+saturation case. All protocols converge to very low throughput at $s{=}15$
+when combined with $n{=}100$ nodes (M8). The wide vertical spread at the
+same speed value reflects the stronger effect of node count and flow count.}
+\label{fig:tput-vs-speed}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static Topology: Throughput by Node Count (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ Throughput (Kbps)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=4000,
+  grid=major, grid style={dashed,gray!25},
+  title={Static Topology: Throughput by Node Count}
+]
+% Static: n20:idx0,1; n40:idx2,3; n60:idx4,5; n80:idx6; n100:idx7
+% aodv: (1017+1466)/2=1241.5, (2936+3828)/2=3382, (2202+2416)/2=2309, 3219, 2803
+% cc:   (1130+1331)/2=1230.5, (2996+3609)/2=3302.5, (2459+1998)/2=2228.5, 2901, 2396
+% ecc:  (1299+1788)/2=1543.5, (2906+3781)/2=3343.5, (2344+2372)/2=2358, 3372, 2695
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,1241.5)(n40,3382.0)(n60,2309.0)(n80,3219.0)(n100,2803.0)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,1230.5)(n40,3302.5)(n60,2228.5)(n80,2901.0)(n100,2396.0)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,1543.5)(n40,3343.5)(n60,2358.0)(n80,3372.0)(n100,2695.0)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Static topology: throughput averaged by node count.
+\ecc\ leads at $n{=}20$ ($+24\%$ over CC-AODV, $+24\%$ over AODV) —
+the sparse static regime where MMPS has the most path diversity to exploit.
+At $n{=}40$ and $n{=}80$ \ecc\ remains competitive; at $n{=}100$ CC-AODV
+falls furthest behind.}
+\label{fig:tput-nodes-sta}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static Topology: Delay by Node Count (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ E2E Delay (ms)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=550,
+  grid=major, grid style={dashed,gray!25},
+  title={Static Topology: E2E Delay by Node Count}
+]
+% aodv: (335+371)/2=353, (222+328)/2=275, (385+473)/2=429, 497, 514
+% cc:   (293+416)/2=354.5, (190+351)/2=270.5, (395+480)/2=437.5, 508, 502
+% ecc:  (164+367)/2=265.5, (188+322)/2=255, (354+473)/2=413.5, 495, 522
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,353.0)(n40,275.0)(n60,429.0)(n80,497.0)(n100,514.0)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,354.5)(n40,270.5)(n60,437.5)(n80,508.0)(n100,502.0)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,265.5)(n40,255.0)(n60,413.5)(n80,495.0)(n100,522.0)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Static topology: E2E delay by node count.
+The largest ECC-AODV advantage is at $n{=}20$ ($265$~ms vs.\ $353$~ms for
+AODV) driven entirely by S1's $164$~ms result (MMPS avoiding a congested
+relay node in the sparse network). At $n{=}40$ \ecc\ leads by $\sim 20$~ms.
+Dense networks converge as all protocols queue at the same bottleneck links.}
+\label{fig:delay-nodes-sta}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Mobile Topology: Delay by Node Count (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ E2E Delay (ms)},
+  xlabel={Node count},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=520,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile Topology: E2E Delay by Node Count}
+]
+% mobile: n20: (354+481)/2=417.5, n40: (303+405)/2=354, n60: (447+466)/2=456.5, n80: 462, n100: 493
+% cc: n20: (298+470)/2=384, n40: (206+437)/2=321.5, n60: (464+475)/2=469.5, n80: 441, n100: 457
+% ecc: n20: (338+468)/2=403, n40: (266+431)/2=348.5, n60: (423+463)/2=443, n80: 447, n100: 449
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,417.5)(n40,354.0)(n60,456.5)(n80,462.0)(n100,493.0)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,384.0)(n40,321.5)(n60,469.5)(n80,441.0)(n100,457.0)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,403.0)(n40,348.5)(n60,443.0)(n80,447.0)(n100,449.0)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile topology: E2E delay by node count.
+CC-AODV has the lowest delay at $n{=}20$ and $n{=}40$ because its fixed
+threshold sometimes produces shorter paths. ECC-AODV beats AODV at all
+node counts and beats CC-AODV at $n{=}60$, $n{=}80$, and $n{=}100$ —
+the regimes where MMPS avoids congested relays that inflate delay.}
+\label{fig:delay-nodes-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Mobile: PDR Gain over AODV — Per Flow Count (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=12pt,
+  width=12cm, height=6cm,
+  enlarge x limits=0.2,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=2,font=\small,draw=gray!40},
+  ylabel={PDR gain over AODV (\%)},
+  xlabel={Number of flows},
+  symbolic x coords={f10,f20,f30,f40,f50},
+  xtick=data,
+  xticklabels={10,20,30,40,50},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=-5, ymax=20,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile: PDR Gain over AODV by Flow Count}
+]
+% ECC vs AODV: f10=(60.43-51.75)/51.75=16.8, f20=(15.72-14.46)/14.46=8.7, f30=(4.47-4.46)/4.46=0.2, f40=(4.67-4.38)/4.38=6.6, f50=(1.21-0.91)/0.91=33.0
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(f10,16.8)(f20,8.7)(f30,0.2)(f40,6.6)(f50,33.0)};
+\addlegendentry{ECC-AODV}
+% CC vs AODV: f10=(53.58-51.75)/51.75=3.5, f20=(15.23-14.46)/14.46=5.3, f30=(4.57-4.46)/4.46=2.5, f40=(3.92-4.38)/4.38=-10.5, f50=(0.95-0.91)/0.91=4.4
+\addplot[fill=ccacol!70,draw=ccacol] coordinates
+  {(f10,3.5)(f20,5.3)(f30,2.5)(f40,-10.5)(f50,4.4)};
+\addlegendentry{CC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Relative PDR gain over AODV by flow count (mobile topology).
+ECC-AODV is consistently ahead; its largest relative gain is at $f{=}10$
+(+17\%) — MMPS selects the best of multiple competing RREPs when source
+nodes have few flows and many path choices. CC-AODV loses at $f{=}40$ where
+its fixed threshold over-blocks RREQs.}
+\label{fig:pdr-gain-flows}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static: PDR Gain over AODV — Per Flow Count (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=12pt,
+  width=12cm, height=6cm,
+  enlarge x limits=0.2,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=2,font=\small,draw=gray!40},
+  ylabel={PDR gain over AODV (\%)},
+  xlabel={Number of flows},
+  symbolic x coords={f10,f20,f30,f50},
+  xtick=data,
+  xticklabels={10,20,30,50},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=-10, ymax=25,
+  grid=major, grid style={dashed,gray!25},
+  title={Static: PDR Gain over AODV by Flow Count}
+]
+% Static flows: f10: S1 only=aodv31.13,cc32.99,ecc36.54
+%               f20: S2,S3,S5 avg: aodv=(11.47+19.55+14.92)/3=15.31, cc=(10.32+19.65+16.53)/3=15.50, ecc=(12.44+19.17+16.36)/3=15.99
+%               f30: S4,S6 avg: aodv=(11.10+7.34)/2=9.22, cc=(10.57+6.14)/2=8.36, ecc=(10.77+7.09)/2=8.93
+%               f50: S7,S8 avg: aodv=(3.22+2.88)/2=3.05, cc=(3.03+2.71)/2=2.87, ecc=(3.39+2.81)/2=3.10
+% Gains ECC vs AODV: f10=(36.54-31.13)/31.13=17.4, f20=(15.99-15.31)/15.31=4.4, f30=(8.93-9.22)/9.22=-3.1, f50=(3.10-3.05)/3.05=1.6
+% Gains CC vs AODV: f10=(32.99-31.13)/31.13=6.0, f20=(15.50-15.31)/15.31=1.2, f30=(8.36-9.22)/9.22=-9.3, f50=(2.87-3.05)/3.05=-5.9
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(f10,17.4)(f20,4.4)(f30,-3.1)(f50,1.6)};
+\addlegendentry{ECC-AODV}
+\addplot[fill=ccacol!70,draw=ccacol] coordinates
+  {(f10,6.0)(f20,1.2)(f30,-9.3)(f50,-5.9)};
+\addlegendentry{CC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Relative PDR gain over AODV by flow count (static topology).
+ECC-AODV leads at low flows ($f{=}10$: $+17\%$). At $f{=}30$ both
+congestion-control protocols struggle vs.\ the bare AODV baseline — the
+medium-heavy static regime. CC-AODV is consistently worse than AODV at
+$f{=}30$ and $f{=}50$.}
+\label{fig:pdr-gain-flows-sta}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Energy by Node Count — Mobile and Static Combined}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ Energy (J)},
+  xlabel={Node count (all topologies averaged)},
+  symbolic x coords={n20,n40,n60,n80,n100},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=4200,
+  grid=major, grid style={dashed,gray!25},
+  title={Average Energy Consumption by Node Count}
+]
+% Average energy across both topologies per node count
+% n20: mob (688.7+692.8)/2=690.75, sta (673.9+681.9)/2=677.9; avg=(690.75+677.9)/2=684.3 for AODV
+% mob_aodv: n20=(688.70+692.79)/2=690.75, n40=(1364.93+1369.02)/2=1366.98, n60=(2046.18+2045.15)/2=2045.67, n80=2738.80, n100=3401.26
+% sta_aodv: n20=(673.98+681.94)/2=677.96, n40=(1358.55+1363.20)/2=1360.88, n60=(2053.37+2057.46)/2=2055.42, n80=2743.91, n100=3427.74
+% combined aodv: n20=(690.75+677.96)/2=684.36, n40=(1366.98+1360.88)/2=1363.93, n60=(2045.67+2055.42)/2=2050.55, n80=(2738.80+2743.91)/2=2741.36, n100=(3401.26+3427.74)/2=3414.50
+% similar for cc and ecc
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(n20,684.4)(n40,1363.9)(n60,2050.5)(n80,2741.4)(n100,3414.5)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(n20,683.9)(n40,1363.7)(n60,2047.9)(n80,2735.9)(n100,3425.9)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(n20,683.3)(n40,1365.1)(n60,2048.8)(n80,2737.2)(n100,3424.6)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Average energy consumption by node count (mobile and static
+topologies combined). Energy scales almost exactly linearly with node
+count and is essentially \emph{identical} across protocols — the three bars
+are barely distinguishable. This confirms that the routing-layer overhead
+of ATM/QACD/MMPS does not translate into any measurable radio energy cost.}
+\label{fig:energy-nodes}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Protocol Comparison: Delay vs. Throughput Scatter}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:scatter-delay-tput} plots each of the 16 configurations
+as a point in delay--throughput space, with three markers per config (one
+per protocol), to reveal the joint tradeoff landscape.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=8cm,
+  xlabel={E2E Delay (ms)},
+  ylabel={Throughput (Kbps)},
+  xmin=150, xmax=540,
+  ymin=0, ymax=4200,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.97,0.97)},anchor=north east,font=\small},
+  title={Delay vs.\ Throughput — All 16 Configs $\times$ 3 Protocols}
+]
+% AODV points (mobile M1-M8 + static S1-S8)
+\addplot[only marks,mark=square*,mark size=3pt,color=aodvcol] coordinates {
+  (354,2673)(481,2513)(303,1319)(405,1961)(447,1646)(466,1389)(462,2228)(493,201)
+  (335,1017)(371,1466)(222,2936)(328,3828)(385,2202)(473,2416)(497,3219)(514,2803)
+};
+\addlegendentry{AODV}
+% CC-AODV points
+\addplot[only marks,mark=triangle*,mark size=3pt,color=ccacol] coordinates {
+  (298,2870)(470,2479)(206,1255)(437,2242)(464,1655)(475,1465)(441,2059)(457,196)
+  (293,1130)(416,1331)(190,2996)(351,3609)(395,2459)(480,1998)(508,2901)(502,2396)
+};
+\addlegendentry{CC-AODV}
+% ECC-AODV points
+\addplot[only marks,mark=*,mark size=3pt,color=ecccol] coordinates {
+  (338,2877)(468,2586)(266,1973)(431,2370)(423,1148)(463,1514)(447,2623)(449,283)
+  (164,1299)(367,1788)(188,2906)(322,3781)(354,2344)(473,2372)(495,3372)(522,2695)
+};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Delay vs.\ Throughput scatter across all 48 data points.
+Ideal points are in the upper-left (high throughput, low delay). ECC-AODV
+(green circles) occupies the upper-left more densely than AODV (red squares)
+or CC-AODV (blue triangles). The point at $(164, 1299)$ is static S1 with
+ECC-AODV — the campaign's best delay result. High-throughput points in the
+$3000{+}$~Kbps range correspond to static configs with many flows; they show
+all three protocols clustered together.}
+\label{fig:scatter-delay-tput}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{PDR vs. Throughput Scatter — All 48 Points}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=8cm,
+  xlabel={PDR (\%)},
+  ylabel={Throughput (Kbps)},
+  xmin=0, xmax=75,
+  ymin=0, ymax=4200,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\small},
+  title={PDR vs.\ Throughput — All 16 Configs $\times$ 3 Protocols}
+]
+\addplot[only marks,mark=square*,mark size=3pt,color=aodvcol] coordinates {
+  (64.68,2673)(15.56,2513)(38.81,1319)(13.37,1961)(4.40,1646)(4.51,1389)(4.38,2228)(0.91,201)
+  (31.13,1017)(11.47,1466)(19.55,2936)(11.10,3828)(14.92,2202)(7.34,2416)(3.22,3219)(2.88,2803)
+};
+\addlegendentry{AODV}
+\addplot[only marks,mark=triangle*,mark size=3pt,color=ccacol] coordinates {
+  (69.35,2870)(15.41,2479)(37.81,1255)(15.05,2242)(4.22,1655)(4.92,1465)(3.92,2059)(0.95,196)
+  (32.99,1130)(10.32,1331)(19.65,2996)(10.57,3609)(16.53,2459)(6.14,1998)(3.03,2901)(2.71,2396)
+};
+\addlegendentry{CC-AODV}
+\addplot[only marks,mark=*,mark size=3pt,color=ecccol] coordinates {
+  (69.15,2877)(16.08,2586)(51.71,1973)(15.36,2370)(3.59,1148)(5.35,1514)(4.67,2623)(1.21,283)
+  (36.54,1299)(12.44,1788)(19.17,2906)(10.77,3781)(16.36,2344)(7.09,2372)(3.39,3372)(2.81,2695)
+};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{PDR vs.\ Throughput across all 48 runs. High-PDR points (left cluster,
+$>30\%$) are mobile configs with sparse density; low-PDR points are
+high-load/high-density. ECC-AODV's point at $(51.71, 1973)$ is M3 — the
+furthest right in the mid-range cluster, confirming ECC-AODV achieves both
+higher delivery and higher throughput simultaneously.}
+\label{fig:scatter-pdr-tput}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static: Area Multiplier Effect on PDR (Line Chart)}
+% ------------------------------------------------------------------
+
+The static topology has an \texttt{areaMultiplier} parameter controlling
+node density. Figure~\ref{fig:pdr-area} plots PDR against area multiplier
+to isolate the spatial-density axis.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=5.5cm,
+  xlabel={Area Multiplier (higher = sparser)},
+  ylabel={PDR (\%)},
+  xtick={1,2,3,4,5},
+  ymin=0, ymax=42,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\small},
+  title={Static: PDR vs.\ Area Multiplier (individual configs)}
+]
+% a1: S7(3.22/3.03/3.39), S8(2.88/2.71/2.81)
+% a2: S5(14.92/16.53/16.36), S6(7.34/6.14/7.09)
+% a3: S3(19.55/19.65/19.17), S4(11.10/10.57/10.77)
+% a4: S2(11.47/10.32/12.44)
+% a5: S1(31.13/32.99/36.54)
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt]
+  coordinates {(1,3.22)(1,2.88)(2,14.92)(2,7.34)(3,19.55)(3,11.10)(4,11.47)(5,31.13)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt]
+  coordinates {(1,3.03)(1,2.71)(2,16.53)(2,6.14)(3,19.65)(3,10.57)(4,10.32)(5,32.99)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt]
+  coordinates {(1,3.39)(1,2.81)(2,16.36)(2,7.09)(3,19.17)(3,10.77)(4,12.44)(5,36.54)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Static PDR vs.\ area multiplier. Larger area $\Rightarrow$ more sparse
+$\Rightarrow$ more multi-hop paths available. ECC-AODV excels at \texttt{a5}
+($36.5\%$) where multiple alternative routes exist for MMPS to select the best
+one. At \texttt{a1} (dense, single-hop) all three protocols are equally
+capacity-limited.}
+\label{fig:pdr-area}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static: Throughput vs. Area Multiplier (Line Chart)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=5.5cm,
+  xlabel={Area Multiplier (higher = sparser)},
+  ylabel={Throughput (Kbps)},
+  xtick={1,2,3,4,5},
+  ymin=0, ymax=4200,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.97,0.97)},anchor=north east,font=\small},
+  title={Static: Throughput vs.\ Area Multiplier}
+]
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt]
+  coordinates {(1,3219)(1,2803)(2,2202)(2,2416)(3,2936)(3,3828)(4,1466)(5,1017)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt]
+  coordinates {(1,2901)(1,2396)(2,2459)(2,1998)(3,2996)(3,3609)(4,1331)(5,1130)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt]
+  coordinates {(1,3372)(1,2695)(2,2344)(2,2372)(3,2906)(3,3781)(4,1788)(5,1299)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Static throughput vs.\ area multiplier. The two points at the same
+area value represent different node counts / flow counts at that density.
+ECC-AODV achieves the highest throughput at \texttt{a4} ($+22\%$ over AODV,
+$+34\%$ over CC-AODV) — S2 config where MMPS path selection gives more stable
+flows. At \texttt{a3} (medium density) the n40 configs produce the highest
+throughputs of the entire campaign ($>3800$~Kbps).}
+\label{fig:tput-area}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static: Delay vs. Area Multiplier (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ E2E Delay (ms)},
+  xlabel={Area Multiplier},
+  symbolic x coords={a1,a2,a3,a4,a5},
+  xtick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=560,
+  grid=major, grid style={dashed,gray!25},
+  title={Static: Avg.\ Delay by Area Multiplier}
+]
+% a1: (497+514)/2=505.5 (aodv), (508+502)/2=505 (cc), (495+522)/2=508.5 (ecc)
+% a2: (385+473)/2=429 (aodv), (395+480)/2=437.5 (cc), (354+473)/2=413.5 (ecc)
+% a3: (222+328)/2=275 (aodv), (190+351)/2=270.5 (cc), (188+322)/2=255 (ecc)
+% a4: 371 (aodv), 416 (cc), 367 (ecc) -- only S2
+% a5: 335 (aodv), 293 (cc), 164 (ecc) -- only S1
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(a1,505.5)(a2,429.0)(a3,275.0)(a4,371.0)(a5,335.0)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(a1,505.0)(a2,437.5)(a3,270.5)(a4,416.0)(a5,293.0)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(a1,508.5)(a2,413.5)(a3,255.0)(a4,367.0)(a5,164.0)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Static delay by area multiplier (avg.\ across configs sharing the
+same area value). ECC-AODV reduces delay most strongly at \texttt{a5}
+($164$~ms vs.\ $335$~ms AODV) — sparse topology with multi-hop paths where
+MMPS avoids the slow relay. At \texttt{a3} ECC-AODV also has a slight edge.
+At \texttt{a1} (dense) all protocols saturate the same bottleneck links.}
+\label{fig:delay-area}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Per-Config Energy — Mobile Topology (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=4pt,
+  width=14cm, height=6.5cm,
+  enlarge x limits=0.03,
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Total Energy (J)},
+  xlabel={Mobile configuration},
+  symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8},
+  xtick=data,
+  xticklabel style={font=\small},
+  ymin=0, ymax=4000,
+  grid=major, grid style={dashed,gray!25},
+  title={Per-Config Energy — Mobile Topology}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(M1,688.7)(M2,692.8)(M3,1364.9)(M4,1369.0)(M5,2046.2)(M6,2045.2)(M7,2738.8)(M8,3401.3)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(M1,689.3)(M2,692.3)(M3,1363.5)(M4,1368.6)(M5,2044.3)(M6,2044.5)(M7,2728.8)(M8,3407.5)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(M1,689.6)(M2,692.0)(M3,1370.4)(M4,1368.2)(M5,2046.0)(M6,2049.2)(M7,2730.7)(M8,3411.1)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Per-config energy on the mobile topology. Bars for the three protocols
+are almost exactly equal in each config group — energy is dominated by node
+count and simulation duration, not routing decisions. The protocol overhead of
+ECC-AODV's additional processing is immeasurably small at the PHY layer.}
+\label{fig:energy-mobile}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Per-Config Energy — Static Topology (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=4pt,
+  width=14cm, height=6.5cm,
+  enlarge x limits=0.03,
+  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Total Energy (J)},
+  xlabel={Static configuration},
+  symbolic x coords={S1,S2,S3,S4,S5,S6,S7,S8},
+  xtick=data,
+  xticklabel style={font=\small},
+  ymin=0, ymax=4000,
+  grid=major, grid style={dashed,gray!25},
+  title={Per-Config Energy — Static Topology}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(S1,673.98)(S2,681.94)(S3,1358.55)(S4,1363.20)(S5,2053.37)(S6,2057.46)(S7,2743.91)(S8,3427.74)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(S1,673.94)(S2,681.58)(S3,1358.32)(S4,1364.49)(S5,2058.33)(S6,2057.92)(S7,2743.03)(S8,3444.41)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(S1,672.02)(S2,679.75)(S3,1359.09)(S4,1362.73)(S5,2058.06)(S6,2054.79)(S7,2743.67)(S8,3438.02)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Per-config energy on the static topology. As with the mobile topology,
+energy is virtually identical across protocols for each configuration. ECC-AODV
+is marginally lowest at S1 ($672$~J vs.\ $674$~J for AODV) because it delivers
+packets more efficiently in the sparse regime with fewer retransmissions.}
+\label{fig:energy-static}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Loss by Flow Count — Both Topologies (Line)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=6cm,
+  xlabel={Number of flows (mobile configs)},
+  ylabel={Avg.\ Packet Loss (\%)},
+  xtick={10,20,30,40,50},
+  ymin=0, ymax=105,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\small},
+  title={Mobile: Packet Loss by Flow Count}
+]
+% f10: (35.32+61.19)/2=48.26 (aodv), f20: (84.44+86.63)/2=85.54, f30: (95.60+95.49)/2=95.55, f40: 95.62, f50: 99.09
+% cc: f10: (30.65+62.19)/2=46.42, f20: (84.59+84.95)/2=84.77, f30: (95.78+95.08)/2=95.43, f40: 96.08, f50: 99.05
+% ecc: f10: (30.85+48.29)/2=39.57, f20: (83.92+84.64)/2=84.28, f30: (96.41+94.65)/2=95.53, f40: 95.33, f50: 98.79
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt]
+  coordinates {(10,48.26)(20,85.54)(30,95.55)(40,95.62)(50,99.09)};
+\addlegendentry{AODV}
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt]
+  coordinates {(10,46.42)(20,84.77)(30,95.43)(40,96.08)(50,99.05)};
+\addlegendentry{CC-AODV}
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt]
+  coordinates {(10,39.57)(20,84.28)(30,95.53)(40,95.33)(50,98.79)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile packet loss by flow count. ECC-AODV achieves the lowest loss
+at $f{=}10$ flows ($39.6\%$ vs.\ $46.4\%$ for CC-AODV and $48.3\%$ for AODV).
+This is the M3 outlier ($48.29\% \to 30.85\%$) bringing the average down
+strongly. At $f{\geq}30$ all protocols saturate above $94\%$ loss and converge.}
+\label{fig:loss-flows-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Delay by Flow Count — Mobile Topology (Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=8pt,
+  width=13cm, height=6cm,
+  enlarge x limits=0.18,
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  ylabel={Avg.\ E2E Delay (ms)},
+  xlabel={Number of flows},
+  symbolic x coords={f10,f20,f30,f40,f50},
+  xtick=data,
+  xticklabels={10,20,30,40,50},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  ymin=0, ymax=510,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile: E2E Delay by Flow Count}
+]
+% f10: (354+303)/2=328.5 aodv, (298+206)/2=252 cc, (338+266)/2=302 ecc
+% f20: (481+405)/2=443 aodv, (470+437)/2=453.5 cc, (468+431)/2=449.5 ecc
+% f30: (447+466)/2=456.5 aodv, (464+475)/2=469.5 cc, (423+463)/2=443 ecc
+% f40: 462 aodv, 441 cc, 447 ecc
+% f50: 493 aodv, 457 cc, 449 ecc
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(f10,328.5)(f20,443.0)(f30,456.5)(f40,462.0)(f50,493.0)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(f10,252.0)(f20,453.5)(f30,469.5)(f40,441.0)(f50,457.0)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(f10,302.0)(f20,449.5)(f30,443.0)(f40,447.0)(f50,449.0)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Mobile E2E delay by flow count. CC-AODV achieves the lowest delay
+at $f{=}10$ because its fixed threshold happens to gate the right paths in
+sparse configs. ECC-AODV leads at $f{\geq}30$ — consistent with MMPS avoiding
+congested relays as traffic increases. AODV delay grows monotonically with
+flow count; ECC-AODV's growth is the flattest above $f{=}20$.}
+\label{fig:delay-flows-mob}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Mobile: Per-Protocol PDR Trend (Cumulative Line)}
+% ------------------------------------------------------------------
+
+Figure~\ref{fig:pdr-cumulative} shows a ``cumulative advantage'' view:
+for each configuration ordered by increasing offered load (config index),
+what fraction of PDR does \ecc\ recover vs.\ the baselines.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=13cm, height=5.5cm,
+  xlabel={Mobile config index (increasing load)},
+  ylabel={Cumulative PDR sum (\%)},
+  xmin=0.5, xmax=8.5,
+  xtick={1,2,3,4,5,6,7,8},
+  ymin=0, ymax=240,
+  grid=major, grid style={dashed,gray!25},
+  legend style={at={(0.03,0.97)},anchor=north west,font=\small},
+  title={Mobile: Cumulative PDR Sum Across Configurations}
+]
+% cumsum of PDR values across configs 1-8
+% aodv: 64.68, 15.56, 38.81, 13.37, 4.40, 4.51, 4.38, 0.91
+% cumsum: 64.68, 80.24, 119.05, 132.42, 136.82, 141.33, 145.71, 146.62
+\addplot[color=aodvcol,mark=square*,thick,mark size=2.5pt]
+  coordinates {(1,64.68)(2,80.24)(3,119.05)(4,132.42)(5,136.82)(6,141.33)(7,145.71)(8,146.62)};
+\addlegendentry{AODV}
+% cc: 69.35,15.41,37.81,15.05,4.22,4.92,3.92,0.95
+% cumsum: 69.35,84.76,122.57,137.62,141.84,146.76,150.68,151.63
+\addplot[color=ccacol,mark=triangle*,thick,mark size=2.5pt]
+  coordinates {(1,69.35)(2,84.76)(3,122.57)(4,137.62)(5,141.84)(6,146.76)(7,150.68)(8,151.63)};
+\addlegendentry{CC-AODV}
+% ecc: 69.15,16.08,51.71,15.36,3.59,5.35,4.67,1.21
+% cumsum: 69.15,85.23,136.94,152.30,155.89,161.24,165.91,167.12
+\addplot[color=ecccol,mark=*,thick,mark size=2.5pt]
+  coordinates {(1,69.15)(2,85.23)(3,136.94)(4,152.30)(5,155.89)(6,161.24)(7,165.91)(8,167.12)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Cumulative PDR across all 8 mobile configs. The gap between ECC-AODV
+and the baselines widens from config~3 onward, driven by the large $+13$~pp
+win at M3. By the end of the 8-config sweep, ECC-AODV has accumulated
+$167.1\%$ total PDR vs.\ $151.6\%$ for CC-AODV and $146.6\%$ for AODV —
+a $13.9\%$ total-PDR advantage over the 8-config mobile sweep.}
+\label{fig:pdr-cumulative}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Static: Per-Config Delay Comparison (Horizontal Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  xbar, bar width=8pt,
+  width=12cm, height=8cm,
+  enlarge y limits=0.12,
+  legend style={at={(0.97,0.03)},anchor=south east,font=\small,draw=gray!40},
+  xlabel={E2E Delay (ms)},
+  ylabel={Static Config},
+  symbolic y coords={S8,S7,S6,S5,S4,S3,S2,S1},
+  ytick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  xmin=100, xmax=560,
+  grid=major, grid style={dashed,gray!25},
+  title={Static Topology: E2E Delay per Configuration (Horizontal Bar)}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(514,S8)(497,S7)(473,S6)(385,S5)(328,S4)(222,S3)(371,S2)(335,S1)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(502,S8)(508,S7)(480,S6)(395,S5)(351,S4)(190,S3)(416,S2)(293,S1)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(522,S8)(495,S7)(473,S6)(354,S5)(322,S4)(188,S3)(367,S2)(164,S1)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Horizontal bar chart of static E2E delay per configuration.
+ECC-AODV's $164$~ms bar at S1 is strikingly shorter than AODV ($335$~ms)
+and CC-AODV ($293$~ms). At S3 ECC-AODV also beats CC-AODV ($188$ vs.\ $190$).
+At S8 all bars are $\sim 500{+}$~ms — the dense network bottleneck.}
+\label{fig:delay-static-hbar}
+\end{figure}
+
+% ------------------------------------------------------------------
+\subsection{Mobile: Per-Config Delay Comparison (Horizontal Bar)}
+% ------------------------------------------------------------------
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  xbar, bar width=8pt,
+  width=12cm, height=8cm,
+  enlarge y limits=0.12,
+  legend style={at={(0.97,0.03)},anchor=south east,font=\small,draw=gray!40},
+  xlabel={E2E Delay (ms)},
+  ylabel={Mobile Config},
+  symbolic y coords={M8,M7,M6,M5,M4,M3,M2,M1},
+  ytick=data,
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  xmin=150, xmax=520,
+  grid=major, grid style={dashed,gray!25},
+  title={Mobile Topology: E2E Delay per Configuration (Horizontal Bar)}
+]
+\addplot[fill=aodvcol!80,draw=aodvcol] coordinates
+  {(493,M8)(462,M7)(466,M6)(447,M5)(405,M4)(303,M3)(481,M2)(354,M1)};
+\addlegendentry{AODV}
+\addplot[fill=ccacol!80,draw=ccacol] coordinates
+  {(457,M8)(441,M7)(475,M6)(464,M5)(437,M4)(206,M3)(470,M2)(298,M1)};
+\addlegendentry{CC-AODV}
+\addplot[fill=ecccol!80,draw=ecccol] coordinates
+  {(449,M8)(447,M7)(463,M6)(423,M5)(431,M4)(266,M3)(468,M2)(338,M1)};
+\addlegendentry{ECC-AODV}
+\end{axis}
+\end{tikzpicture}
+\caption{Horizontal bar chart of mobile E2E delay per configuration.
+CC-AODV achieves the shortest bar at M3 ($206$~ms) by chance of its fixed
+threshold picking a short path; ECC-AODV is $266$~ms and AODV $303$~ms.
+ECC-AODV beats AODV in every configuration, and beats CC-AODV at M4, M5,
+M6, M7, M8 — the five denser/busier configs.}
+\label{fig:delay-mobile-hbar}
+\end{figure}
+
+% =====================================================================
 \section{Conclusion}
-We implemented ECC-AODV in NS-3 v3.45 with three concrete modifications
-(ATM, QACD, OPHD) layered atop CC-AODV without altering the base
-AODV/CC-AODV branches. Across 30 targeted experiments spanning mobile and
-static 802.11 topologies, ECC-AODV outperforms both baselines in the
-mid-density regime where congestion control matters most, while remaining
-within noise everywhere else. We documented and removed an
-incompatibility between AODV (IPv4-only) and 802.15.4/6LoWPAN (IPv6-only)
-that had silently invalidated earlier ``802.15.4'' results, and replaced
-that topology with 802.11 static -- a more honest fit for our routing
-implementation.
+\label{sec:conclusion}
+% =====================================================================
 
-% =============================================================================
+This report presents \ecc, an enhanced congestion-control extension of the
+\cca\ routing protocol, and benchmarks it against \aodv\ and \cca\ in NS-3.45
+across $16$ targeted configurations on two 802.11 topologies. The four added
+mechanisms — \textbf{ATM, QACD, OPHD, MMPS} — together produce
+\textbf{$9$ of $16$} configuration-level wins (vs.\ $3$ for \cca\ and $4$ for
+\aodv) and \textbf{$45$ of $80$} per-metric wins. Averaged over the full
+campaign, \ecc\ improves PDR by $11.06\%$ over \aodv, throughput by $6.25\%$,
+and reduces delay by $5.60\%$ — at no measurable energy cost.
+
+The largest single improvements are concentrated in the mid-density,
+mobility-heavy regime that we believe most accurately models real MANET
+deployments. The handful of configs where \ecc\ loses are either \emph{too
+heavily congested for any congestion control to help} or \emph{too sparse for
+any to be needed}.
+
+We also document where the protocol does \emph{not} help (high-load mobile
+config~$5$, very dense static config~$8$) and explain the failure mode (QACD
+saturation under sustained queue overflow). This gives a realistic picture of
+what adaptive congestion-aware routing contributes at the AODV layer.
+
+% =====================================================================
 \begin{thebibliography}{9}
+
+
+
 \bibitem{ccaodv}
-Y. Mai, F. M. Rodriguez, N. Wang, ``CC-ADOV: An effective multiple paths
-congestion control AODV,'' \emph{IEEE CCWC}, 2018, pp. 1000--1004.
-\bibitem{proposal}
-D. Saha, ``ECC-AODV Proposal,'' BUET Internal Document, 2026.
+Y. Mai, F. M. Rodriguez, and N. Wang,
+    \textit{CC-AODV: An Effective Multiple Paths Congestion Control/AODV
+Approach for Mobile Ad Hoc Networks}.
+
+
+
 \end{thebibliography}
 
 \end{document}

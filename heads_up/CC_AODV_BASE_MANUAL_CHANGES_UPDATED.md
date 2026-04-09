@@ -4,6 +4,150 @@ This document consolidates all CC-AODV and ECC-AODV implementation details, incl
 
 ---
 
+## Part 9: Current Workspace Condition (April 2026) — 802.11 Mobile + Static
+
+This section reflects the **current code state in `main`** and compares the latest two commits:
+
+- Newer commit: `b35fdf6` (`only 802.11`)
+- Previous commit: `97c54f9`
+
+### 9.1 Architecture Status (Current)
+
+✅ Simulator is now **strictly 802.11-only** for wireless links in both topologies:
+
+- `topology=mobile` → RandomWaypoint mobility
+- `topology=static` → fixed-node deployment with area scaling (`areaMultiplier × txRange`)
+
+Removed from runtime path:
+
+- `--networkType` argument
+- 802.15.4 approximation branch (`SetupLrWpanApprox`)
+
+This keeps ECC-AODV evaluation aligned with IPv4 AODV assumptions.
+
+---
+
+### 9.2 Latest Two-Commit Diff Summary (`97c54f9..b35fdf6`)
+
+#### A) `scratch/aodv-simulator.cc` key changes
+
+```diff
+- string networkType = "802.11"; // "802.11" or "802.15.4"
++ string topology = "mobile";
++ double areaMultiplier = 1.0;
++ double txRange = 250.0;
+```
+
+```diff
+- cmd.AddValue("networkType", "Network type: 802.11 or 802.15.4", opt.networkType);
++ cmd.AddValue("topology", "Topology: mobile | static", opt.topology);
++ cmd.AddValue("areaMultiplier", "Static topology: side length = areaMultiplier * txRange", opt.areaMultiplier);
++ cmd.AddValue("txRange", "Reference Tx range in meters (for static area sizing)", opt.txRange);
+```
+
+```diff
+- NetDeviceContainer devices;
+- if (opt.networkType == "802.15.4") { devices = SetupLrWpanApprox(...); }
+- else { devices = SetupWifi(...); }
++ NetDeviceContainer devices = SetupWifi(nodes, wifiPhy);
+```
+
+```diff
+- csv << "Protocol,Mode,NetworkType,..."
++ csv << "Protocol,Mode,Network,Topology,AreaMultiplier,..."
+
+- csv << protocolLabel << "," << opt.mode << "," << opt.networkType << ...
++ csv << protocolLabel << "," << opt.mode << ",802.11," << opt.topology << ...
+```
+
+#### B) `targeted_run.sh` key changes
+
+```diff
+- NETWORKS=("802.11" "802.15.4")
++ TOPOLOGIES=("mobile" "static")
+```
+
+```diff
+- --networkType=${net}
++ --topology=${topo}
++ --areaMultiplier=${areaMul}
+```
+
+```diff
+- total runs: 5 configs × 2 networks × 3 protocols = 30
++ total runs: 5 configs × 2 topologies × 3 protocols = 30
+```
+
+---
+
+### 9.3 Mobile vs Static in Current ECC-AODV Flow
+
+- **Mobile (`--topology=mobile`)**: Node speed is varied using `--minSpeed` and `--maxSpeed`.
+- **Static (`--topology=static`)**: Nodes are fixed; coverage density is changed via `--areaMultiplier`.
+- **Protocol mode remains identical** across both: `aodv`, `cc-aodv`, `ecc-aodv`.
+
+So, ECC logic (ATM/QACD/MMPS) remains routing-layer consistent while topology/mobility differs at scenario level.
+
+---
+
+### 9.4 New Bonus Implementations Added in Current Workspace
+
+To address `bonus.txt`, the simulator now adds two optional features:
+
+1. **Cross-type support (wired + wireless overlay)**
+   - New args in `aodv-simulator.cc`:
+     - `--bonusHybrid=true|false`
+     - `--hybridWiredNodes=<k>`
+   - Behavior:
+     - Always keeps 802.11 wireless network for full scenario.
+     - Optionally overlays a CSMA wired backbone on first `k` nodes.
+
+2. **Extra metric: per-node throughput**
+   - Aggregates destination-side throughput per node from FlowMonitor stats.
+   - Prints per-node throughput in console.
+   - Writes CSV: `<output>-per-node-throughput.csv`.
+
+These are optional and do not alter baseline mobile/static experiments unless enabled.
+
+---
+
+### 9.5 Updated `targeted_run.sh` Matrix (Now >=60 combos)
+
+The runner now supports required values:
+
+- Nodes: `20, 40, 60, 80, 100`
+- Flows: `10, 20, 30, 40, 50`
+- PPS: `100, 200, 300, 400, 500`
+- Mobile speed: `5, 10, 15, 20, 25`
+- Static area: `1x..5x txRange`
+
+Default mode:
+
+- `MATRIX_MODE="paired"`
+- Total runs: `5 paired configs × 5 pps × 2 topologies × 3 protocols = 150`
+
+Optional heavy mode:
+
+- `MATRIX_MODE="full"` for full cartesian sweep.
+
+Bonus flags are exposed in the runner too:
+
+- `BONUS_HYBRID=true|false`
+- `HYBRID_WIRED_NODES=<k>`
+
+---
+
+### 9.6 Practical Note
+
+For report-ready fairness, keep:
+
+- same `seed`
+- same `(nodes, flows, pps)` tuple
+- same topology condition (mobile/static)
+
+while switching only protocol mode (`aodv` → `cc-aodv` → `ecc-aodv`).
+
+
 ## Part 0: Quick Overview – What Changed
 
 ### The Core Bug We Fixed
