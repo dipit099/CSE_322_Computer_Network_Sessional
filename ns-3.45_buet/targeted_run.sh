@@ -11,8 +11,8 @@
 set -euo pipefail
 
 PROJECT_DIR="/Users/dipit099/NeatDownload/ns3 project/ns-3.45_buet"
-OUTPUT_DIR="targets_final"
-LOGS_DIR="targets_final_logs"
+OUTPUT_DIR="targets_finalv2"
+LOGS_DIR="targets_final_logsv2"
 REPORT_FILE="${OUTPUT_DIR}/targeted-winners-and-metrics.txt"
 
 SIM_TIME=30
@@ -37,12 +37,12 @@ SLEEP_BETWEEN=3   # seconds between runs (keeps laptop cool)
 #  QUEUE_POLL_INTERVAL  -> seconds between queue samples
 #
 # All OFF for bulk runs; flip individually for targeted single runs.
-ENABLE_TRACE=false
-ENABLE_RD_TRACE=false
-ENABLE_RT_TRACE=false
+ENABLE_TRACE=True
+ENABLE_RD_TRACE=True
+ENABLE_RT_TRACE=True
 TRACE_INTERVAL=1.0
-ENABLE_PER_NODE_TPUT=false
-ENABLE_QUEUE_TRACE=false
+ENABLE_PER_NODE_TPUT=True
+ENABLE_QUEUE_TRACE=True
 QUEUE_POLL_INTERVAL=1.0
 # -----------------------------------------------------------------------
 
@@ -51,16 +51,25 @@ QUEUE_POLL_INTERVAL=1.0
 # All four STATIC_* arrays must be the same length.
 # COLUMN WISE VALYYES CONSIDERING
 
-MOBILE_NODES=(20 20 40 40 60 60 80 100)
-MOBILE_FLOWS=(10 20 10 20 30 30 40 50)
-MOBILE_PPS=(100 200 100 200 400 300 400 500)
-MOBILE_SPEEDS=(5 20 25 10 5 15 10 15)
+# MOBILE_NODES=(20 20 40 40 60 60 80 100)
+# MOBILE_FLOWS=(10 20 10 20 30 30 40 50)
+# MOBILE_PPS=(100 200 100 200 400 300 400 500)
+# MOBILE_SPEEDS=(5 20 25 10 5 15 10 15)
 
-STATIC_NODES=(20 20 40 40 60 60 80 100)
-STATIC_FLOWS=(10 20 20 30 20 30 50 50)
-STATIC_PPS=(100 200 200 300 200 300 500 500)
-STATIC_AREAS=(5 4 3 3 2 2 1 1)
+# STATIC_NODES=(20 20 40 40 60 60 80 100)
+# STATIC_FLOWS=(10 20 20 30 20 30 50 50)
+# STATIC_PPS=(100 200 200 300 200 300 500 500)
+# STATIC_AREAS=(5 4 3 3 2 2 1 1)
 
+MOBILE_NODES=(20)
+MOBILE_FLOWS=(20)
+MOBILE_PPS=(200)
+MOBILE_SPEEDS=(20)
+
+STATIC_NODES=(20)
+STATIC_FLOWS=(20)
+STATIC_PPS=(200)
+STATIC_AREAS=(4)
 
 PROTOCOLS=("aodv" "cc-aodv" "ecc-aodv")
 

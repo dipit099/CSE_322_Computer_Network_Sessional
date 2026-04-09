@@ -1,44 +1,74 @@
-\contentsline {section}{\numberline {1}Introduction}{5}{section.1}%
-\contentsline {subsection}{\numberline {1.1}AODV $\rightarrow $ CC-AODV $\rightarrow $ ECC-AODV}{5}{subsection.1.1}%
-\contentsline {section}{\numberline {2}Problem Motivation}{5}{section.2}%
-\contentsline {subsection}{\numberline {2.1}ECC-AODV Enhancements}{6}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Design Delta from AODV and CC-AODV}{6}{subsection.2.2}%
-\contentsline {section}{\numberline {3}Network Topologies Under Simulation}{6}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Wireless 802.11 Mobile Topology}{7}{subsection.3.1}%
-\contentsline {subsubsection}{\numberline {3.1.1}Architecture}{7}{subsubsection.3.1.1}%
-\contentsline {subsubsection}{\numberline {3.1.2}Channel and Energy Model}{7}{subsubsection.3.1.2}%
-\contentsline {subsubsection}{\numberline {3.1.3}Traffic Model}{7}{subsubsection.3.1.3}%
-\contentsline {subsection}{\numberline {3.2}Wireless 802.11 Static Topology}{7}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Architecture}{7}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Coverage / Density Effect}{7}{subsubsection.3.2.2}%
-\contentsline {section}{\numberline {4}Methodology and Parameter Sweeps}{8}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Sweep Strategy}{8}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Mobile Topology Parameter Sweep}{8}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}Static Topology Parameter Sweep}{8}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Scenario Intents Used in Testing}{8}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}Per-Run Configuration}{8}{subsection.4.5}%
-\contentsline {subsection}{\numberline {4.6}Metrics Reported}{9}{subsection.4.6}%
-\contentsline {section}{\numberline {5}Results}{9}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Full Per-Configuration Results}{9}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Mobile Topology — Multi-Panel Parameter Sweep}{11}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Static Topology — Multi-Panel Parameter Sweep}{12}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Average-Metric Grouped-Bar Comparison}{13}{subsection.5.4}%
+\contentsline {section}{\numberline {1}Introduction}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}AODV $\rightarrow $ CC-AODV $\rightarrow $ ECC-AODV}{4}{subsection.1.1}%
+\contentsline {section}{\numberline {2}Problem Motivation}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}ECC-AODV Enhancements}{5}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Design Delta from AODV and CC-AODV}{5}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Network Topologies Under Simulation}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Wireless 802.11 Mobile Topology}{6}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Architecture}{6}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Channel and Energy Model}{6}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Traffic Model}{6}{subsubsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.2}Wireless 802.11 Static Topology}{6}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Architecture}{6}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Coverage / Density Effect}{6}{subsubsection.3.2.2}%
+\contentsline {section}{\numberline {4}Methodology and Parameter Sweeps}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Sweep Strategy}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Mobile Topology Parameter Sweep}{7}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Static Topology Parameter Sweep}{7}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Scenario Intents Used in Testing}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Per-Run Configuration}{7}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Metrics Reported}{8}{subsection.4.6}%
+\contentsline {section}{\numberline {5}Results}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Full Per-Configuration Results}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Mobile Topology — Multi-Panel Parameter Sweep}{10}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Static Topology — Multi-Panel Parameter Sweep}{11}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Average-Metric Grouped-Bar Comparison}{12}{subsection.5.4}%
 \contentsline {subsection}{\numberline {5.5}ECC-AODV Improvement over Baselines}{13}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Win Matrix — Per-Metric Wins per Protocol}{13}{subsection.5.6}%
-\contentsline {subsection}{\numberline {5.7}PDR vs.\ Node Count — Mobile Topology (Grouped Bar)}{13}{subsection.5.7}%
-\contentsline {section}{\numberline {6}Summary Findings}{14}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Per-Topology Average Metrics}{14}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Total Win Counts}{14}{subsection.6.2}%
-\contentsline {subsection}{\numberline {6.3}Where ECC-AODV Wins Decisively}{14}{subsection.6.3}%
+\contentsline {subsection}{\numberline {5.6}Win Matrix — Per-Metric Wins per Protocol}{14}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}PDR vs.\ Node Count — Mobile Topology}{15}{subsection.5.7}%
+\contentsline {section}{\numberline {6}Summary Findings}{15}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Per-Topology Average Metrics}{15}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Total Win Counts}{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Where ECC-AODV Wins Decisively}{15}{subsection.6.3}%
 \contentsline {subsection}{\numberline {6.4}Where ECC-AODV Loses}{15}{subsection.6.4}%
-\contentsline {subsection}{\numberline {6.5}Why Energy Looks Identical}{15}{subsection.6.5}%
-\contentsline {section}{\numberline {7}Ablation Study}{15}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Why $(\alpha ,\beta ,\gamma ) = (0.6,0.2,0.2)$ for MMPS}{15}{subsection.7.1}%
-\contentsline {subsection}{\numberline {7.2}Why $(w_1,w_2,w_3) = (0.6,0.2,0.2)$ for QACD}{16}{subsection.7.2}%
-\contentsline {section}{\numberline {8}Discussion}{16}{section.8}%
-\contentsline {subsection}{\numberline {8.1}When does each protocol win?}{16}{subsection.8.1}%
-\contentsline {subsection}{\numberline {8.2}The PDR vs Throughput Tradeoff}{16}{subsection.8.2}%
+\contentsline {subsection}{\numberline {6.5}Why Energy Looks Identical}{16}{subsection.6.5}%
+\contentsline {section}{\numberline {7}Ablation Study}{16}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Why $(\alpha ,\beta ,\gamma ) = (0.6,0.2,0.2)$ for MMPS}{17}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Why $(w_1,w_2,w_3) = (0.6,0.2,0.2)$ for QACD}{17}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Discussion}{17}{section.8}%
+\contentsline {subsection}{\numberline {8.1}When does each protocol win?}{17}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}The PDR vs Throughput Tradeoff}{17}{subsection.8.2}%
 \contentsline {subsection}{\numberline {8.3}Why Loss Improvements are Small in Absolute Terms}{17}{subsection.8.3}%
 \contentsline {subsection}{\numberline {8.4}Mobile vs Static}{17}{subsection.8.4}%
-\contentsline {subsection}{\numberline {8.5}Limitations and Future Work}{17}{subsection.8.5}%
-\contentsline {section}{\numberline {9}Conclusion}{17}{section.9}%
+\contentsline {subsection}{\numberline {8.5}Limitations and Future Work}{18}{subsection.8.5}%
+\contentsline {subsection}{\numberline {8.6}Throughput vs.\ Node Count — Mobile Topology}{19}{subsection.8.6}%
+\contentsline {subsection}{\numberline {8.7}PDR vs.\ Flow Count — Mobile Topology}{19}{subsection.8.7}%
+\contentsline {subsection}{\numberline {8.8}Throughput vs.\ Flow Count — Mobile Topology}{20}{subsection.8.8}%
+\contentsline {subsection}{\numberline {8.9}PDR by Node Count — Static Topology}{20}{subsection.8.9}%
+\contentsline {subsection}{\numberline {8.10}PDR by Mobility Speed — Mobile Topology}{20}{subsection.8.10}%
+\contentsline {subsection}{\numberline {8.11}ECC-AODV Gain over AODV by Node Count — Both Topologies}{21}{subsection.8.11}%
+\contentsline {subsection}{\numberline {8.12}Per-Config Throughput Comparison — All 16 Configs}{21}{subsection.8.12}%
+\contentsline {subsection}{\numberline {8.13}Per-Config PDR Comparison — All 16 Configs}{22}{subsection.8.13}%
+\contentsline {subsection}{\numberline {8.14}End-to-End Delay — All 16 Configs}{23}{subsection.8.14}%
+\contentsline {subsection}{\numberline {8.15}Packet Loss — All 16 Configs}{23}{subsection.8.15}%
+\contentsline {subsection}{\numberline {8.16}Mobility Speed vs.\ PDR — All Mobile Configs}{23}{subsection.8.16}%
+\contentsline {subsection}{\numberline {8.17}Throughput vs.\ Speed — Mobile Topology}{24}{subsection.8.17}%
+\contentsline {subsection}{\numberline {8.18}Static Topology: Throughput by Node Count}{25}{subsection.8.18}%
+\contentsline {subsection}{\numberline {8.19}Static Topology: Delay by Node Count}{25}{subsection.8.19}%
+\contentsline {subsection}{\numberline {8.20}Mobile Topology: Delay by Node Count}{26}{subsection.8.20}%
+\contentsline {subsection}{\numberline {8.21}Mobile: PDR Gain over AODV — Per Flow Count}{26}{subsection.8.21}%
+\contentsline {subsection}{\numberline {8.22}Static: PDR Gain over AODV — Per Flow Count}{27}{subsection.8.22}%
+\contentsline {subsection}{\numberline {8.23}Energy by Node Count — Mobile and Static Combined}{27}{subsection.8.23}%
+\contentsline {subsection}{\numberline {8.24}Protocol Comparison: Delay vs. Throughput Scatter}{27}{subsection.8.24}%
+\contentsline {subsection}{\numberline {8.25}PDR vs. Throughput Scatter — All 48 Points}{28}{subsection.8.25}%
+\contentsline {subsection}{\numberline {8.26}Static: Area Multiplier Effect on PDR}{29}{subsection.8.26}%
+\contentsline {subsection}{\numberline {8.27}Static: Throughput vs. Area Multiplier}{29}{subsection.8.27}%
+\contentsline {subsection}{\numberline {8.28}Static: Delay vs. Area Multiplier}{30}{subsection.8.28}%
+\contentsline {subsection}{\numberline {8.29}Per-Config Energy — Mobile Topology}{30}{subsection.8.29}%
+\contentsline {subsection}{\numberline {8.30}Per-Config Energy — Static Topology}{31}{subsection.8.30}%
+\contentsline {subsection}{\numberline {8.31}Loss by Flow Count — Both Topologies}{31}{subsection.8.31}%
+\contentsline {subsection}{\numberline {8.32}Delay by Flow Count — Mobile Topology}{32}{subsection.8.32}%
+\contentsline {subsection}{\numberline {8.33}Mobile: Per-Protocol PDR Trend}{32}{subsection.8.33}%
+\contentsline {subsection}{\numberline {8.34}Static: Per-Config Delay Comparison}{33}{subsection.8.34}%
+\contentsline {subsection}{\numberline {8.35}Mobile: Per-Config Delay Comparison}{33}{subsection.8.35}%
+\contentsline {section}{\numberline {9}Conclusion}{34}{section.9}%

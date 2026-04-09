@@ -11,6 +11,7 @@
 \usepackage[table]{xcolor}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{float}
 \usepackage{tabularx}
 \usepackage{array}
 \usepackage{tikz}
@@ -370,12 +371,19 @@ traffic-density intent (from our test-plan notes):
     \textbf{Topology} & \textbf{Representative configuration} & \textbf{Intent tag} \\
 \midrule
 Mobile & n20,f10,p100,s5   & \cellcolor{lightgreen}Very sparse + low load + slow mobility \\
-Mobile & n40,f10,p100,s25  & \cellcolor{lightyellow}Medium density + fast mobility \\
+Mobile & n40,f10,p100,s25  & \cellcolor{lightyellow}Medium density + low load + very fast mobility \\
+Mobile & n40,f20,p200,s10  & \cellcolor{lightyellow}Medium density + balanced mobility + balanced load \\
 Mobile & n60,f30,p400,s5   & \cellcolor{lightred}Dense + low mobility + heavy traffic \\
-Mobile & n100,f50,p500,s15 & \cellcolor{lightred}Extreme density + extreme offered load \\
+Mobile & n60,f30,p300,s15  & \cellcolor{lightred}Dense + mid mobility + mid-high load \\
+Mobile & n80,f40,p400,s10  & \cellcolor{lightred}Very dense + moderate mobility + heavy traffic \\
+Mobile & n100,f50,p500,s15 & \cellcolor{lightred}Extreme density + medium mobility + extreme load \\
 Static & n20,f10,p100,a5   & \cellcolor{lightgreen}Very sparse static + light load \\
+Static & n20,f20,p200,a4   & \cellcolor{lightyellow}Sparse static + medium load \\
 Static & n40,f20,p200,a3   & \cellcolor{lightyellow}Medium static + balanced load \\
+Static & n40,f30,p300,a3   & \cellcolor{lightred}Medium static + heavy traffic \\
+Static & n60,f20,p200,a2   & \cellcolor{lightyellow}Dense static + medium load \\
 Static & n60,f30,p300,a2   & \cellcolor{lightred}Dense static congestion \\
+Static & n80,f50,p500,a1   & \cellcolor{lightred}Very dense static + extreme traffic \\
 Static & n100,f50,p500,a1  & \cellcolor{lightred}Near-saturation static regime \\
 \bottomrule
 \end{tabular}
@@ -543,7 +551,7 @@ $8$), which corresponds to monotonically increasing offered load and
 density (Table~\ref{tab:sweep-mobile}). \ecc\ tracks or beats the baselines on
 PDR and throughput across the entire sweep.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\textwidth}
 \centering
@@ -629,12 +637,14 @@ baselines on throughput.}
 \label{fig:mobile-sweep}
 \end{figure}
 
+\pagebreak
+
 \clearpage
 
 % ----- 5.3: static sweep line plots -----
 \subsection{Static Topology — Multi-Panel Parameter Sweep}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\textwidth}
 \centering
@@ -718,6 +728,8 @@ the lowest energy ($672$~J).}
 \label{fig:static-sweep}
 \end{figure}
 
+\pagebreak
+
 \clearpage
 
 % ----- 5.4: Grouped bar metric-wise comparison -----
@@ -727,7 +739,7 @@ Figure~\ref{fig:avg-bars} averages each metric over all $16$ configurations
 and shows the three protocols side by side. This collapses the campaign into a
 single ``who is best on average'' chart.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -756,6 +768,8 @@ time, not routing decisions.}
 \label{fig:avg-bars}
 \end{figure}
 
+\pagebreak
+
 % ----- 5.5: Improvement bars -----
 \subsection{ECC-AODV Improvement over Baselines}
 
@@ -764,7 +778,7 @@ the two baselines on each averaged metric. Positive bars on PDR/Throughput
 mean \ecc\ delivers more; positive bars on Delay/Loss mean \ecc\ delivers
 faster / loses less.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\textwidth}
 \centering
@@ -776,7 +790,6 @@ faster / loses less.
     symbolic x coords={PDR, Throughput, Delay, Loss},
     xtick=data, ymin=0, ymax=14,
     nodes near coords, nodes near coords style={font=\small},
-    title={\small ECC-AODV vs.\ AODV},
     grid=major, grid style={dashed,gray!30}
 ]
 \addplot[fill=ecccol] coordinates {(PDR,11.06) (Throughput,6.25) (Delay,5.60) (Loss,2.03)};
@@ -794,7 +807,6 @@ faster / loses less.
     symbolic x coords={PDR, Throughput, Delay, Loss},
     xtick=data, ymin=0, ymax=14,
     nodes near coords, nodes near coords style={font=\small},
-    title={\small ECC-AODV vs.\ CC-AODV},
     grid=major, grid style={dashed,gray!30}
 ]
 \addplot[fill=ecccol] coordinates {(PDR,8.72) (Throughput,8.75) (Delay,3.35) (Loss,1.64)};
@@ -807,6 +819,8 @@ $16$ configurations. Delay and Loss are reported as ``percent reduction''
 \label{fig:improvement}
 \end{figure}
 
+\pagebreak
+
 % ----- 5.6: Win matrix grouped bar -----
 \subsection{Win Matrix — Per-Metric Wins per Protocol}
 
@@ -815,7 +829,7 @@ metric contests across the $16$ configs ($16 \times 5 = 80$ total contests).
 \ecc\ wins more than both baselines combined on every metric except energy,
 where \cca\ ties.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -843,9 +857,11 @@ delay ($11/16$) and throughput ($10/16$), and clearly leads on PDR and loss
 \label{fig:winmatrix}
 \end{figure}
 
+\pagebreak
+
 
 % ----- 5.7 onward: extended analysis (moved from separate section) -----
-\subsection{PDR vs.\ Node Count — Mobile Topology (Grouped Bar)}
+\subsection{PDR vs.\ Node Count — Mobile Topology}
 
 % For an at-a-glance comparison we compute a normalized QoS composite
 % \[
@@ -1127,7 +1143,7 @@ their node count ($n{=}20,40,60,80,100$) and averages PDR within each
 group. Configs with the same node count but different flows/speeds are
 merged to show the effect of \emph{scale} alone.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1139,10 +1155,9 @@ merged to show the effect of \emph{scale} alone.
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=52,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile Topology: PDR by Node Count}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(n20,40.12)(n40,26.09)(n60,4.46)(n80,4.38)(n100,0.91)};
@@ -1167,7 +1182,7 @@ $1.21\%$ vs.\ $\sim 0.93\%$ average.}
 \subsection{Throughput vs.\ Node Count — Mobile Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1179,10 +1194,9 @@ $1.21\%$ vs.\ $\sim 0.93\%$ average.}
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=3200,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile Topology: Throughput by Node Count}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(n20,2593.1)(n40,1639.6)(n60,1517.7)(n80,2228.4)(n100,200.8)};
@@ -1211,7 +1225,7 @@ Figure~\ref{fig:pdr-flows-mob} groups the mobile configurations by number
 of flows (UDP sources). More flows means more concurrent data streams
 competing for the medium.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1224,10 +1238,9 @@ competing for the medium.
   symbolic x coords={f10,f20,f30,f40,f50},
   xtick=data,
   xticklabels={10,20,30,40,50},
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=75,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile Topology: PDR by Flow Count}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(f10,51.75)(f20,14.46)(f30,4.46)(f40,4.38)(f50,0.91)};
@@ -1252,7 +1265,7 @@ is saturated and all three protocols converge.}
 \subsection{Throughput vs.\ Flow Count — Mobile Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1265,10 +1278,9 @@ is saturated and all three protocols converge.}
   symbolic x coords={f10,f20,f30,f40,f50},
   xtick=data,
   xticklabels={10,20,30,40,50},
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=3000,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile Topology: Throughput by Flow Count}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(f10,1996.0)(f20,2236.7)(f30,1517.7)(f40,2228.4)(f50,200.8)};
@@ -1292,7 +1304,7 @@ some flows; at $f{=}50$ the channel collapses for all protocols.}
 \subsection{PDR by Node Count — Static Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1304,10 +1316,9 @@ some flows; at $f{=}50$ the channel collapses for all protocols.}
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=32,
   grid=major, grid style={dashed,gray!25},
-  title={Static Topology: PDR by Node Count}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(n20,21.30)(n40,15.32)(n60,11.13)(n80,3.22)(n100,2.88)};
@@ -1336,7 +1347,7 @@ Figure~\ref{fig:pdr-speed} splits the eight mobile configurations into
 \emph{high-speed} ($s \geq 15$~m/s, configs 2,3,6,8) and shows average PDR
 and throughput side by side.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1349,10 +1360,9 @@ and throughput side by side.
   symbolic x coords={Low-Speed,High-Speed},
   xtick=data,
   xticklabels={Low (${\leq}10$~m/s), High (${\geq}15$~m/s)},
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=30,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile PDR by Speed Category}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(Low-Speed,21.71)(High-Speed,14.95)};
@@ -1382,7 +1392,7 @@ Figure~\ref{fig:gain-nodes} shows the \emph{relative PDR gain} of \ecc\
 over \aodv\ at each node-count level, for both mobile and static topologies.
 This is the clearest single chart showing where \ecc\ helps the most.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1394,10 +1404,9 @@ This is the clearest single chart showing where \ecc\ helps the most.
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=-5, ymax=35,
   grid=major, grid style={dashed,gray!25},
-  title={Relative PDR Gain: ECC-AODV vs.\ AODV},
   ybar=3pt
 ]
 % Mobile: (42.62-40.12)/40.12*100=6.2, (33.53-26.09)/26.09*100=28.5, (4.47-4.46)/4.46=0.3, (4.67-4.38)/4.38=6.6, (1.21-0.91)/0.91=33.0
@@ -1428,14 +1437,14 @@ Figure~\ref{fig:tput-all16} plots throughput for all 16 configurations
 (8 mobile + 8 static) as grouped vertical bars, giving a full campaign
 view.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
   ybar, bar width=4pt,
   width=15cm, height=7cm,
   enlarge x limits=0.03,
-  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
   ylabel={Throughput (Kbps)},
   xlabel={Configuration (M1--M8 mobile, S1--S8 static)},
   symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8,S1,S2,S3,S4,S5,S6,S7,S8},
@@ -1444,7 +1453,6 @@ view.
   nodes near coords style={font=\tiny,rotate=90,anchor=west},
   ymin=0, ymax=4500,
   grid=major, grid style={dashed,gray!25},
-  title={Throughput Across All 16 Configurations}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(M1,2673)(M2,2513)(M3,1319)(M4,1961)(M5,1646)(M6,1389)(M7,2228)(M8,201)
@@ -1471,14 +1479,14 @@ is the only static config where AODV wins on throughput.}
 \subsection{Per-Config PDR Comparison — All 16 Configs}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
   ybar, bar width=4pt,
   width=15cm, height=7cm,
   enlarge x limits=0.03,
-  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
   ylabel={PDR (\%)},
   xlabel={Configuration (M1--M8 mobile, S1--S8 static)},
   symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8,S1,S2,S3,S4,S5,S6,S7,S8},
@@ -1486,7 +1494,6 @@ is the only static config where AODV wins on throughput.}
   xticklabel style={font=\tiny,rotate=45,anchor=east},
   ymin=0, ymax=75,
   grid=major, grid style={dashed,gray!25},
-  title={PDR Across All 16 Configurations}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(M1,64.68)(M2,15.56)(M3,38.81)(M4,13.37)(M5,4.40)(M6,4.51)(M7,4.38)(M8,0.91)
@@ -1510,10 +1517,10 @@ CC-AODV — the largest single-config lead in the entire campaign.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{End-to-End Delay — All 16 Configs (Line Chart)}
+\subsection{End-to-End Delay — All 16 Configs}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1550,10 +1557,10 @@ delay result, nearly half of AODV's $335$~ms. On the mobile side,
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Packet Loss — All 16 Configs (Line Chart)}
+\subsection{Packet Loss — All 16 Configs}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1590,10 +1597,10 @@ configs where no routing-layer policy can recover.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{ECC-AODV Throughput Gain over AODV — Mobile Only (Bar)}
+\subsection{ECC-AODV Throughput Gain over AODV — Mobile Only}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1604,11 +1611,10 @@ configs where no routing-layer policy can recover.}
   xlabel={Mobile configuration},
   symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=-35, ymax=55,
   grid=major, grid style={dashed,gray!25},
-  title={ECC-AODV Throughput Gain over AODV — Mobile Topology},
-  legend style={at={(0.5,1.15)},anchor=north,legend columns=2,font=\small}
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=2,font=\small}
 ]
 % ECC vs AODV: (2877-2673)/2673*100=7.6, (2586-2513)/2513*100=2.9, (1973-1319)/1319=49.6, (2370-1961)/1961=20.9, (1148-1646)/1646=-30.3, (1514-1389)/1389=9.0, (2623-2228)/2228=17.7, (283-201)/201=40.8
 \addplot[fill=ecccol!85,draw=ecccol!80!black] coordinates
@@ -1635,7 +1641,7 @@ Figure~\ref{fig:radar-mob} shows a 5-axis radar chart using only the
 mobile-topology averages, giving a clean visual comparison separate from
 the combined (mobile+static) radar in the analysis section.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[scale=1.1]
 % 5 axes at 90,162,234,306,18 degrees (PDR, Tput, LowDelay, LowLoss, E-neutral)
@@ -1696,14 +1702,14 @@ best Low~Delay axis; AODV is smallest overall.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Mobility Speed vs.\ PDR — Line Chart (All Mobile Configs)}
+\subsection{Mobility Speed vs.\ PDR — All Mobile Configs}
 % ------------------------------------------------------------------
 
 Figure~\ref{fig:pdr-vs-speed-line} plots the eight mobile configs
 re-ordered by their assigned speed parameter (low to high) to show how
 PDR degrades as nodes move faster.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1740,10 +1746,10 @@ adaptive mechanisms handle high-mobility scenarios most effectively.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Throughput vs.\ Speed — Mobile Topology (Line Chart)}
+\subsection{Throughput vs.\ Speed — Mobile Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1776,10 +1782,10 @@ same speed value reflects the stronger effect of node count and flow count.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static Topology: Throughput by Node Count (Bar)}
+\subsection{Static Topology: Throughput by Node Count}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1791,10 +1797,9 @@ same speed value reflects the stronger effect of node count and flow count.}
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=4000,
   grid=major, grid style={dashed,gray!25},
-  title={Static Topology: Throughput by Node Count}
 ]
 % Static: n20:idx0,1; n40:idx2,3; n60:idx4,5; n80:idx6; n100:idx7
 % aodv: (1017+1466)/2=1241.5, (2936+3828)/2=3382, (2202+2416)/2=2309, 3219, 2803
@@ -1820,10 +1825,10 @@ falls furthest behind.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static Topology: Delay by Node Count (Bar)}
+\subsection{Static Topology: Delay by Node Count}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1835,10 +1840,9 @@ falls furthest behind.}
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=550,
   grid=major, grid style={dashed,gray!25},
-  title={Static Topology: E2E Delay by Node Count}
 ]
 % aodv: (335+371)/2=353, (222+328)/2=275, (385+473)/2=429, 497, 514
 % cc:   (293+416)/2=354.5, (190+351)/2=270.5, (395+480)/2=437.5, 508, 502
@@ -1863,10 +1867,10 @@ Dense networks converge as all protocols queue at the same bottleneck links.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Mobile Topology: Delay by Node Count (Bar)}
+\subsection{Mobile Topology: Delay by Node Count}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1878,10 +1882,9 @@ Dense networks converge as all protocols queue at the same bottleneck links.}
   xlabel={Node count},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=520,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile Topology: E2E Delay by Node Count}
 ]
 % mobile: n20: (354+481)/2=417.5, n40: (303+405)/2=354, n60: (447+466)/2=456.5, n80: 462, n100: 493
 % cc: n20: (298+470)/2=384, n40: (206+437)/2=321.5, n60: (464+475)/2=469.5, n80: 441, n100: 457
@@ -1906,10 +1909,10 @@ the regimes where MMPS avoids congested relays that inflate delay.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Mobile: PDR Gain over AODV — Per Flow Count (Bar)}
+\subsection{Mobile: PDR Gain over AODV — Per Flow Count}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1922,10 +1925,9 @@ the regimes where MMPS avoids congested relays that inflate delay.}
   symbolic x coords={f10,f20,f30,f40,f50},
   xtick=data,
   xticklabels={10,20,30,40,50},
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=-5, ymax=20,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile: PDR Gain over AODV by Flow Count}
 ]
 % ECC vs AODV: f10=(60.43-51.75)/51.75=16.8, f20=(15.72-14.46)/14.46=8.7, f30=(4.47-4.46)/4.46=0.2, f40=(4.67-4.38)/4.38=6.6, f50=(1.21-0.91)/0.91=33.0
 \addplot[fill=ecccol!80,draw=ecccol] coordinates
@@ -1946,10 +1948,10 @@ its fixed threshold over-blocks RREQs.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static: PDR Gain over AODV — Per Flow Count (Bar)}
+\subsection{Static: PDR Gain over AODV — Per Flow Count}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -1962,10 +1964,9 @@ its fixed threshold over-blocks RREQs.}
   symbolic x coords={f10,f20,f30,f50},
   xtick=data,
   xticklabels={10,20,30,50},
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=-10, ymax=25,
   grid=major, grid style={dashed,gray!25},
-  title={Static: PDR Gain over AODV by Flow Count}
 ]
 % Static flows: f10: S1 only=aodv31.13,cc32.99,ecc36.54
 %               f20: S2,S3,S5 avg: aodv=(11.47+19.55+14.92)/3=15.31, cc=(10.32+19.65+16.53)/3=15.50, ecc=(12.44+19.17+16.36)/3=15.99
@@ -1993,7 +1994,7 @@ $f{=}30$ and $f{=}50$.}
 \subsection{Energy by Node Count — Mobile and Static Combined}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2005,10 +2006,9 @@ $f{=}30$ and $f{=}50$.}
   xlabel={Node count (all topologies averaged)},
   symbolic x coords={n20,n40,n60,n80,n100},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=4200,
   grid=major, grid style={dashed,gray!25},
-  title={Average Energy Consumption by Node Count}
 ]
 % Average energy across both topologies per node count
 % n20: mob (688.7+692.8)/2=690.75, sta (673.9+681.9)/2=677.9; avg=(690.75+677.9)/2=684.3 for AODV
@@ -2043,7 +2043,7 @@ Figure~\ref{fig:scatter-delay-tput} plots each of the 16 configurations
 as a point in delay--throughput space, with three markers per config (one
 per protocol), to reveal the joint tradeoff landscape.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2090,7 +2090,7 @@ all three protocols clustered together.}
 \subsection{PDR vs. Throughput Scatter — All 48 Points}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2129,14 +2129,14 @@ higher delivery and higher throughput simultaneously.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static: Area Multiplier Effect on PDR (Line Chart)}
+\subsection{Static: Area Multiplier Effect on PDR}
 % ------------------------------------------------------------------
 
 The static topology has an \texttt{areaMultiplier} parameter controlling
 node density. Figure~\ref{fig:pdr-area} plots PDR against area multiplier
 to isolate the spatial-density axis.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2174,10 +2174,10 @@ capacity-limited.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static: Throughput vs. Area Multiplier (Line Chart)}
+\subsection{Static: Throughput vs. Area Multiplier}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2211,10 +2211,10 @@ throughputs of the entire campaign ($>3800$~Kbps).}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static: Delay vs. Area Multiplier (Bar)}
+\subsection{Static: Delay vs. Area Multiplier}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2226,10 +2226,9 @@ throughputs of the entire campaign ($>3800$~Kbps).}
   xlabel={Area Multiplier},
   symbolic x coords={a1,a2,a3,a4,a5},
   xtick=data,
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=560,
   grid=major, grid style={dashed,gray!25},
-  title={Static: Avg.\ Delay by Area Multiplier}
 ]
 % a1: (497+514)/2=505.5 (aodv), (508+502)/2=505 (cc), (495+522)/2=508.5 (ecc)
 % a2: (385+473)/2=429 (aodv), (395+480)/2=437.5 (cc), (354+473)/2=413.5 (ecc)
@@ -2256,17 +2255,17 @@ At \texttt{a1} (dense) all protocols saturate the same bottleneck links.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Per-Config Energy — Mobile Topology (Bar)}
+\subsection{Per-Config Energy — Mobile Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
   ybar, bar width=4pt,
   width=14cm, height=6.5cm,
   enlarge x limits=0.03,
-  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
   ylabel={Total Energy (J)},
   xlabel={Mobile configuration},
   symbolic x coords={M1,M2,M3,M4,M5,M6,M7,M8},
@@ -2274,7 +2273,6 @@ At \texttt{a1} (dense) all protocols saturate the same bottleneck links.}
   xticklabel style={font=\small},
   ymin=0, ymax=4000,
   grid=major, grid style={dashed,gray!25},
-  title={Per-Config Energy — Mobile Topology}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(M1,688.7)(M2,692.8)(M3,1364.9)(M4,1369.0)(M5,2046.2)(M6,2045.2)(M7,2738.8)(M8,3401.3)};
@@ -2295,17 +2293,17 @@ ECC-AODV's additional processing is immeasurably small at the PHY layer.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Per-Config Energy — Static Topology (Bar)}
+\subsection{Per-Config Energy — Static Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
   ybar, bar width=4pt,
   width=14cm, height=6.5cm,
   enlarge x limits=0.03,
-  legend style={at={(0.5,1.15)},anchor=north,legend columns=3,font=\small,draw=gray!40},
+  legend style={at={(0.5,1.18)},anchor=north,legend columns=3,font=\small,draw=gray!40},
   ylabel={Total Energy (J)},
   xlabel={Static configuration},
   symbolic x coords={S1,S2,S3,S4,S5,S6,S7,S8},
@@ -2313,7 +2311,6 @@ ECC-AODV's additional processing is immeasurably small at the PHY layer.}
   xticklabel style={font=\small},
   ymin=0, ymax=4000,
   grid=major, grid style={dashed,gray!25},
-  title={Per-Config Energy — Static Topology}
 ]
 \addplot[fill=aodvcol!80,draw=aodvcol] coordinates
   {(S1,673.98)(S2,681.94)(S3,1358.55)(S4,1363.20)(S5,2053.37)(S6,2057.46)(S7,2743.91)(S8,3427.74)};
@@ -2334,10 +2331,10 @@ packets more efficiently in the sparse regime with fewer retransmissions.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Loss by Flow Count — Both Topologies (Line)}
+\subsection{Loss by Flow Count — Both Topologies}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2372,10 +2369,10 @@ strongly. At $f{\geq}30$ all protocols saturate above $94\%$ loss and converge.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Delay by Flow Count — Mobile Topology (Bar)}
+\subsection{Delay by Flow Count — Mobile Topology}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2388,10 +2385,9 @@ strongly. At $f{\geq}30$ all protocols saturate above $94\%$ loss and converge.}
   symbolic x coords={f10,f20,f30,f40,f50},
   xtick=data,
   xticklabels={10,20,30,40,50},
-  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt},
+  nodes near coords, nodes near coords style={font=\tiny,inner sep=1pt,rotate=90,anchor=west},
   ymin=0, ymax=510,
   grid=major, grid style={dashed,gray!25},
-  title={Mobile: E2E Delay by Flow Count}
 ]
 % f10: (354+303)/2=328.5 aodv, (298+206)/2=252 cc, (338+266)/2=302 ecc
 % f20: (481+405)/2=443 aodv, (470+437)/2=453.5 cc, (468+431)/2=449.5 ecc
@@ -2418,14 +2414,14 @@ flow count; ECC-AODV's growth is the flattest above $f{=}20$.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Mobile: Per-Protocol PDR Trend (Cumulative Line)}
+\subsection{Mobile: Per-Protocol PDR Trend}
 % ------------------------------------------------------------------
 
 Figure~\ref{fig:pdr-cumulative} shows a ``cumulative advantage'' view:
 for each configuration ordered by increasing offered load (config index),
 what fraction of PDR does \ecc\ recover vs.\ the baselines.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2466,10 +2462,10 @@ a $13.9\%$ total-PDR advantage over the 8-config mobile sweep.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Static: Per-Config Delay Comparison (Horizontal Bar)}
+\subsection{Static: Per-Config Delay Comparison}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
@@ -2505,10 +2501,10 @@ At S8 all bars are $\sim 500{+}$~ms — the dense network bottleneck.}
 \end{figure}
 
 % ------------------------------------------------------------------
-\subsection{Mobile: Per-Config Delay Comparison (Horizontal Bar)}
+\subsection{Mobile: Per-Config Delay Comparison}
 % ------------------------------------------------------------------
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
