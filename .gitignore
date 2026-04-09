@@ -18,4 +18,3 @@
 **/*.pyc
 **/.pytest_cache/
 
-**/targets**/
